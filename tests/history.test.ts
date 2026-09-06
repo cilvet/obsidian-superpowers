@@ -2,6 +2,12 @@ import { expect, test } from 'bun:test';
 import { loadHistory } from '../src/adapters/ai/session';
 import { MemoryVault } from './support/memory';
 
+test('reopening a cleared conversation accepts the persisted empty history', async () => {
+  const vault = new MemoryVault();
+  await vault.write('history', '[]');
+  expect(await loadHistory(vault, 'history')).toEqual([]);
+});
+
 test('interrupted tools are restored as errors, without rerunning mutations', async () => {
   const vault = new MemoryVault();
   await vault.write('history', JSON.stringify([

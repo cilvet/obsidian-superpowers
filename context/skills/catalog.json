@@ -1,0 +1,8 @@
+[
+  { "id": "platforms", "title": "Desktop and mobile runtime", "when": "Before creating or changing a plugin; platform limits, lifecycle, network and capability checks.", "aliases": ["mobile", "platform", "compatibility"] },
+  { "id": "mobile-design", "title": "Touch-first interface design", "when": "Any generated interface: narrow screens, touch, keyboard, safe areas and accessibility.", "aliases": ["mobile-ui", "touch"] },
+  { "id": "desktop-design", "title": "Desktop and pane interface design", "when": "Any generated interface: narrow panes, keyboard, focus, themes and multiple windows.", "aliases": ["desktop", "desktop-ui", "design"] },
+  { "id": "obsidian-data", "title": "Notes as structured records", "when": "Persisting user data, relationships, Properties, Bases, synchronization or schema migrations.", "aliases": ["bases", "database", "properties", "data"] },
+  { "id": "architecture", "title": "Hexagonal architecture and pragmatic DDD", "when": "Before building a plugin: domain vocabulary, invariants, use cases and adapters.", "aliases": ["ddd", "hexagonal"] },
+  { "id": "verification", "title": "Verify the user's actual workflow", "when": "Before claiming completion; test behavior, layout, persistence, errors and both platforms.", "aliases": ["testing", "verify"] }
+]

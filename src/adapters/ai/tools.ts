@@ -21,7 +21,7 @@ export function createTools(studio: Studio, runtime: ObsidianRuntimePort, refere
       execute: (_input, { abortSignal }) => recover(() => runtime.inspect(), abortSignal),
     }),
     lookup_reference: tool({
-      description: 'Read the shipped runtime guides and exact Obsidian API declarations. Query a method/class name, plugins, imports, mobile or bases before using unfamiliar APIs.',
+      description: 'Load runtime skills and exact API declarations. Query "skills" for the catalog; "platforms", "mobile-design", "desktop-design", "obsidian-data", "architecture", "verification" for a skill; "plugins" for the build contract; a class/method name for signatures. Batch independent skill reads before implementation.',
       inputSchema: z.object({ query: z.string() }),
       execute: ({ query }, { abortSignal }) => recover(() => reference.lookup(query), abortSignal),
     }),

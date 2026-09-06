@@ -46,7 +46,7 @@ try {
   if (!['.dev-vault', '.release-vault'].includes(expectedVault) || vault !== expectedVault) throw new Error('Desktop verification only runs in the configured isolated test vault.');
   const trust = page.getByRole('button', { name: /^(Confiar en el autor y activar complementos|Trust author and enable plugins)$/ });
   if (await trust.isVisible()) await trust.click();
-  await page.waitForFunction(() => app.plugins?.plugins['obsidian-superpowers'], undefined, { timeout: 20000 });
+  await page.waitForFunction(() => app.plugins?.plugins['obsidian-superpowers']?.session?.chat, undefined, { timeout: 20000 });
   original = await page.evaluate(async () => {
     const plugin = app.plugins.plugins['obsidian-superpowers']!;
     if (['submitted', 'streaming'].includes(plugin.session.chat.status)) throw new Error('Wait for the active conversation before running desktop verification.');
@@ -72,8 +72,15 @@ try {
 
   for (const provider of ['openai', 'anthropic', 'google'] as const) {
     const replies: Reply[] = [
-      { tool: 'inspect_environment', input: {} },
-      { tool: 'write_file', input: { path: `Transport ${provider}.md`, content: `# ${provider}\nWritten by a real Obsidian tool.` } },
+      { tools: [
+        { tool: 'inspect_environment', input: {} },
+        { tool: 'lookup_reference', input: { query: 'mobile-design' } },
+        { tool: 'lookup_reference', input: { query: 'obsidian-data' } },
+      ] },
+      { tools: [
+        { tool: 'write_file', input: { path: `Transport ${provider}.md`, content: 'First serialized write.' } },
+        { tool: 'write_file', input: { path: `Transport ${provider}.md`, content: `# ${provider}\nWritten by a real Obsidian tool.` } },
+      ] },
       { text: `Prueba de ${provider} completada: he creado la nota.` },
     ];
     const bodies = replies.map((reply) => provider === 'openai' ? openaiEvents(reply) : provider === 'anthropic' ? anthropicEvents(reply) : googleEvents(reply));
@@ -101,10 +108,21 @@ try {
     await expect(page.locator('.sp-assistant')).toContainText(`Prueba de ${provider} completada`, { timeout: 20000 });
     const captured = await page.evaluate(() => ({ calls: window.spFixture!.calls, requests: window.spFixture!.requests }));
     expect(captured.calls).toBe(3);
+    expect(captured.requests[1]).toContain('Touch-first interface design');
+    expect(captured.requests[1]).toContain('Notes as structured records');
+    expect(captured.requests[1]).toContain('apiVersion');
     expect(captured.requests[2]).toContain(`Transport ${provider}.md`);
+    const group = page.locator('.sp-assistant .sp-activity');
+    await expect(group).toHaveCount(1);
+    await expect(group.locator(':scope > summary')).toContainText('5 acciones');
+    await expect(group).not.toHaveAttribute('open', '');
+    await group.locator(':scope > summary').click();
+    await expect(group.locator('.sp-tool')).toHaveCount(5);
+    await expect(group.locator('.sp-tool').first().locator('summary')).toBeVisible();
+    await group.locator(':scope > summary').click();
     expect(await page.evaluate((provider) => app.vault.adapter.read(`Transport ${provider}.md`), provider)).toContain('Written by a real Obsidian tool.');
     await page.evaluate(() => { globalThis.fetch = window.spFixture!.original; delete window.spFixture; });
-    findings.push(`${provider}: provider-shaped SSE → tool call → vault write → continuation → rendered final message.`);
+    findings.push(`${provider}: multiple calls in one response → all results in continuation → serialized writes → one expandable activity group with five calls.`);
   }
   await mkdir('artifacts', { recursive: true });
   await page.screenshot({ path: 'artifacts/desktop-chat.png' });
@@ -134,6 +152,7 @@ try {
   await page.getByRole('textbox', { name: 'Mensaje para Superpowers' }).fill('Crea un plugin con un comando y comprueba que funciona.');
   await page.getByRole('button', { name: 'Enviar mensaje', exact: true }).click();
   await expect(page.locator('.sp-assistant')).toContainText('El error de importación quedó corregido', { timeout: 20000 });
+  await expect(page.locator('.sp-activity > summary')).toContainText('1 incidencia');
   const repair = await page.evaluate(async () => ({ calls: window.spFixture!.calls, diagnosticsReceived: window.spFixture!.requests[2]?.includes('Unsupported import'), content: await app.vault.adapter.read('Chat proof.md') }));
   expect(repair.calls).toBe(5); expect(repair.diagnosticsReceived).toBe(true); expect(repair.content).toBe('Created through the chat tool loop');
   await page.evaluate(() => { globalThis.fetch = window.spFixture!.original; delete window.spFixture; });

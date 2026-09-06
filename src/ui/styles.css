@@ -2,7 +2,10 @@
 .sp-root * { box-sizing: border-box; }
 .sp-chat { display: flex; flex-direction: column; height: 100%; min-height: 0; color: var(--text-normal); background: var(--background-primary); font-family: var(--font-interface); font-size: var(--font-ui-small, 14px); }
 .sp-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--background-modifier-border); flex: 0 0 auto; }
-.sp-brand { font-weight: 650; letter-spacing: -.02em; }
+.sp-brand { font-weight: 650; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; }
+.sp-icon { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; vertical-align: middle; }
+.sp-icon svg { width: 18px; height: 18px; stroke-width: 1.75; }
+.sp-mark .sp-icon svg { width: 42px; height: 42px; }
 .sp-header-actions { display: flex; gap: 6px; }
 .sp-root .sp-header-actions button { width: 34px; height: 34px; padding: 0; background: transparent; box-shadow: none; border: none; color: var(--text-muted); font-size: 20px; }
 .sp-viewport { flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 24px 20px; overscroll-behavior: contain; }
@@ -15,34 +18,54 @@
 .sp-examples span { color: var(--text-faint); margin-left: 12px; }
 .sp-message { max-width: 760px; margin: 0 auto 25px; line-height: 1.65; overflow-wrap: anywhere; }
 .sp-message p { margin: 0 0 .75em; }
-.sp-author { color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: .025em; margin-bottom: 10px; }
+.sp-author { color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: .025em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.sp-author .sp-icon svg { width: 14px; height: 14px; }
 .sp-user { margin-left: auto; margin-right: 0; max-width: min(88%, 660px); background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 15px 15px 3px 15px; padding: 12px 16px; }
 .sp-user p:last-child, .sp-assistant p:last-child { margin-bottom: 0; }
 .sp-message pre, .sp-tool pre { max-width: 100%; overflow-x: auto; padding: 12px; border-radius: 7px; font-size: 12px; background: var(--background-secondary); white-space: pre-wrap; }
 .sp-message code { font-family: var(--font-monospace); }
-.sp-tool { border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 10px 12px; margin: 9px 0; font-size: 12px; }
-.sp-tool summary { cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+.sp-activity { margin: 4px 0 16px; min-width: 0; font-size: 13px; color: var(--text-muted); }
+.sp-activity > summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none; border-radius: 6px; }
+.sp-activity summary::-webkit-details-marker, .sp-tool summary::-webkit-details-marker { display: none; }
+.sp-activity > summary > .sp-icon { transition: transform 150ms; }
+.sp-activity > summary > .sp-icon svg { transform: none; }
+.sp-activity[open] > summary > .sp-icon { transform: rotate(90deg); }
+.sp-activity-label { overflow-wrap: anywhere; }
+.sp-activity[data-running="true"] .sp-activity-label { background: linear-gradient(100deg, var(--text-muted) 20%, var(--text-normal) 45%, var(--text-muted) 70%); background-size: 250% 100%; background-clip: text; -webkit-background-clip: text; color: transparent; animation: sp-shimmer 2s linear infinite; }
+@keyframes sp-shimmer { from { background-position: 180% 0; } to { background-position: -80% 0; } }
+.sp-activity-timeline { border-left: 1px solid var(--background-modifier-border); margin: 4px 0 8px 8px; padding-left: 14px; min-width: 0; }
+.sp-activity-empty { color: var(--text-muted); font-size: 12px; }
+.sp-tool { margin: 2px 0; font-size: 12px; }
+.sp-tool summary { cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-muted); min-height: 44px; border-radius: 6px; list-style: none; }
+.sp-tool summary .sp-icon svg { width: 15px; height: 15px; }
+.sp-tool[data-status="failed"] summary { color: var(--text-error); }
+.sp-root summary:focus-visible, .sp-root button:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
+.sp-tool pre { max-height: 320px; overflow: auto; }
 .sp-tool-status { margin-left: auto; font-size: 10px; }
-.sp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--sp-accent); }
-.sp-tool[data-status="failed"] .sp-dot { background: var(--text-error); }
-.sp-working { color: var(--text-muted); font-size: 12px; padding-bottom: 14px; }
 .sp-footer { flex: 0 0 auto; padding: 12px 14px max(8px, env(safe-area-inset-bottom)); }
 .sp-composer { padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 14px; background: var(--background-primary-alt); box-shadow: 0 3px 16px #00000008; }
 .sp-root .sp-input { display: block; width: 100%; min-height: 56px; max-height: 180px; resize: none; padding: 6px; background: transparent; border: 0; box-shadow: none; font: inherit; color: var(--text-normal); line-height: 1.5; outline: none; }
 .sp-composer:focus-within { border-color: var(--sp-accent); }
 .sp-composer-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .sp-root .sp-icon-button, .sp-root .sp-model { background: transparent; box-shadow: none; border: 0; color: var(--text-muted); height: 32px; padding: 4px 6px; }
-.sp-root .sp-model { font-size: 10px; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+.sp-root .sp-model { font-size: 10px; overflow: hidden; text-overflow: ellipsis; max-width: min(190px, 50%); min-width: 0; }
 .sp-root .sp-send { margin-left: auto; min-width: 36px; height: 34px; border: 0; border-radius: 9px; background: var(--sp-accent); color: var(--text-on-accent, white); font-size: 20px; box-shadow: none; }
 .sp-caption { font-size: 10px; text-align: center; color: var(--text-faint); margin: 8px 0 0; }
 .sp-error { color: var(--text-error); font-size: 12px; padding: 8px 0; overflow-wrap: anywhere; }
 .sp-error button { margin-left: 8px; }
 .sp-root button { cursor: pointer; }
 .sp-root button:disabled { cursor: default; opacity: .45; }
-@media (max-width: 480px) {
+@media (max-width: 480px), (pointer: coarse) {
   .sp-header { padding: 10px 12px; }
   .sp-viewport { padding: 18px 14px; }
   .sp-root .sp-input { font-size: 16px; }
-  .sp-root .sp-send, .sp-root .sp-icon-button, .sp-root .sp-header-actions button { min-height: 44px; min-width: 44px; }
+  .sp-root .sp-send, .sp-root .sp-icon-button, .sp-root .sp-model, .sp-root .sp-header-actions button { min-height: 44px; min-width: 44px; }
   .sp-footer { padding-left: 10px; padding-right: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-activity[data-running="true"] .sp-activity-label { animation: none; background: none; color: var(--text-muted); }
+  .sp-activity > summary > .sp-icon { transition: none; }
+}
+@media (forced-colors: active) {
+  .sp-activity[data-running="true"] .sp-activity-label { background: none; color: CanvasText; }
 }

@@ -10,6 +10,9 @@ export function createAgent(model: LanguageModel, tools: ReturnType<typeof creat
     tools,
     stopWhen: stepCountIs(maxSteps),
     maxRetries: 1,
-    onStepFinish: undefined,
+    providerOptions: {
+      openai: { parallelToolCalls: true },
+      anthropic: { disableParallelToolUse: false },
+    },
   });
 }

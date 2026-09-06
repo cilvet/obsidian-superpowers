@@ -5,6 +5,10 @@ description: Implement agent tools, direct provider transport, runtime context a
 
 Read `context/system.md` and relevant context guides before changing the tool contract.
 Development skills instruct us; runtime context instructs the agent shipped in the plugin.
+Runtime skills live in context/skills/ and are indexed by catalog.json. Keep the catalog,
+lookup_reference descriptions and context/system.md consultation rules consistent.
+Provider calls may contain several independent tools. Preserve all call IDs/results;
+dependent reads must wait for writes, and mutations remain serialized by Studio.
 
 Tools expose workflows and the Obsidian API rather than a separate tool for every note operation.
 Use inferred Zod inputs, stable call identities, serialized mutations and recoverable diagnostics.

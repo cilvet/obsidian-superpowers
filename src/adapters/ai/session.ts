@@ -67,6 +67,8 @@ export class ChatSession {
 export async function loadHistory(vault: VaultPort, path: string): Promise<UIMessage[]> {
   if (!(await vault.exists(path))) return [];
   const raw: unknown = JSON.parse(await vault.read(path));
+  // An empty saved conversation is valid locally; the SDK requires a nonempty request.
+  if (Array.isArray(raw) && raw.length === 0) return [];
   const validated = await safeValidateUIMessages({ messages: raw });
   if (!validated.success) throw new Error('El historial no tiene un formato válido. El archivo se conserva para recuperarlo.');
   // Aborted tools must have a terminal result before history is sent to a provider again.

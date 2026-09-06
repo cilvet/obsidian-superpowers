@@ -1,20 +1,32 @@
 import type { ReferencePort, VaultPort } from '../../application/ports';
 
+export type RuntimeSkill = Readonly<{ id: string; title: string; when: string; aliases: readonly string[]; content: string }>;
+export type ReferenceDocuments = Readonly<{ system: string; guides: string; declarations: string; skills: readonly RuntimeSkill[] }>;
+
 export class LocalReferences implements ReferencePort {
-  constructor(private readonly vault: VaultPort, private readonly docs: Readonly<{ system: string; guides: string; declarations: string }>) {}
+  constructor(private readonly vault: VaultPort, private readonly docs: ReferenceDocuments) {}
+
+  private catalog() {
+    return this.docs.skills.map((skill) => `- ${skill.id}: ${skill.title}. Read when: ${skill.when}`).join('\n');
+  }
 
   async instructions() {
     const { system } = this.docs;
     const user = await this.vault.exists('SUPERPOWERS.md') ? await this.vault.read('SUPERPOWERS.md') : '';
-    return user ? `${system}\n\n## User vault conventions (SUPERPOWERS.md)\n${user.slice(0, 16000)}` : system;
+    const instructions = `${system}\n\n## Available runtime skills\nLoad with lookup_reference(query: skill ID).\n${this.catalog()}`;
+    return user ? `${instructions}\n\n## User vault conventions (SUPERPOWERS.md)\n${user.slice(0, 16000)}` : instructions;
   }
 
   async lookup(query: string) {
     const { guides, declarations } = this.docs;
-    if (/^(plugins?|obsidian|mobile|bases|imports?|guide)$/i.test(query.trim())) return guides;
+    const normalized = query.trim().toLowerCase().replace(/^skill:/, '').trim();
+    if (normalized === 'skills') return this.catalog();
+    const skill = this.docs.skills.find((entry) => entry.id === normalized || entry.aliases.includes(normalized));
+    if (skill) return skill.content;
+    if (/^(plugins?|obsidian|imports?|guide)$/.test(normalized)) return guides;
     const lines = declarations.split('\n');
     const needle = query.toLowerCase().trim();
-    if (!needle) return 'Provide a class or method name, or "plugins", "mobile", "bases".';
+    if (!needle) return 'Provide a class/method name, "skills" for the catalog, a skill ID, or "plugins".';
     const hits: string[] = [];
     for (let index = 0; index < lines.length && hits.length < 8; index++) {
       if (lines[index]?.toLowerCase().includes(needle)) {

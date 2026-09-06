@@ -51,7 +51,22 @@ Chromium y WebKit compilaron usando el WASM integrado con la red desconectada tr
 el bundle. Las referencias también estaban disponibles sin acceso a archivos auxiliares.
 Los avisos de dependencias se incluyen en el JavaScript distribuido.
 
-## Pendiente de validar
+## Skills y actividad agrupada — beta 0.2.0
+
+- 27 pruebas de comportamiento, con catálogo/alias de skills, contexto progresivo, agrupación de
+  varios pasos, llamadas simultáneas, fallos anidados, cancelación e historial vacío.
+- En Obsidian real, cada proveedor procesó tres consultas en una respuesta y dos escrituras en otra.
+  Los resultados llegaron a la continuación; las escrituras quedaron ordenadas y cinco acciones
+  aparecieron dentro de un único desplegable por respuesta.
+- Interfaz: un único indicador desde la espera inicial, cambio a «Preparando plugin», brillo activo,
+  ausencia de animación con movimiento reducido, apertura/cierre con teclado y errores consultables.
+- Medidas en ventanas de 320, 390 y 900 px: sin desbordamiento horizontal en el chat; controles
+  comprobados de al menos 44 × 44 px en los tamaños pequeños. Iconos SVG del host y captura en tema oscuro.
+- Chromium y WebKit: seis skills completas y compilador disponibles sin descargar recursos auxiliares.
+- Evidencia adicional: `artifacts/chat-ui-verification.json`, `chat-mobile-working.png`,
+  `chat-mobile-expanded.png` y `chat-desktop-dark.png`. `bun run verify:release` incluye estas pruebas.
+
+## Pendiente de validar con modelos y dispositivos reales
 
 **Inferencia con modelos reales:** no había ninguna API key disponible en el entorno.
 El evaluador se ejecutó y se detuvo antes de enviar peticiones, como corresponde sin credenciales.

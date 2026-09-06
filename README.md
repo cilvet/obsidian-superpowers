@@ -44,7 +44,7 @@ para APIs internas de Obsidian; puede requerir ajustes cuando cambie el cargador
    con acceso únicamente a `cilvet/obsidian-superpowers` y permiso **Contents: Read-only**.
    Introduce ese token en BRAT para acceder al repositorio; no es la API key del modelo.
 3. Ejecuta el comando de BRAT **Add a beta plugin for testing** y añade
-   `https://github.com/cilvet/obsidian-superpowers`. Selecciona la versión `0.1.0`.
+   `https://github.com/cilvet/obsidian-superpowers`. Selecciona la versión `0.2.0` o la última beta.
 4. Activa **Superpowers** en los plugins instalados, configura tu proveedor y API key,
    y ejecuta **Superpowers: Abrir chat**.
 
@@ -126,6 +126,22 @@ Bun y Node se utilizan solo en desarrollo, nunca como requisitos para el usuario
 `context/system.md` define el contrato general. `lookup_reference` permite consultar las guías
 y el archivo completo `obsidian.d.ts` incluido en la instalación. El agente puede leer un archivo
 opcional `SUPERPOWERS.md` en la raíz del vault para incorporar convenciones del usuario.
+
+`context/skills/catalog.json` describe seis skills del agente del producto: plataformas, diseño móvil,
+diseño de escritorio, datos en Obsidian, arquitectura hexagonal/DDD y verificación. Sus textos se
+empaquetan en el plugin. El contexto inicial incluye el catálogo y cuándo consultarlas;
+`lookup_reference` carga cada skill bajo demanda, con `skills` como índice y alias como `bases` o `mobile`.
+Las instrucciones exigen consultar las guías relevantes y hablar con el usuario en términos funcionales.
+Estas skills del producto son distintas de `.agents/skills/`, que guía el desarrollo del repositorio.
+
+El chat acepta varias herramientas en una respuesta. Las lecturas independientes pueden ejecutarse
+a la vez; las modificaciones se serializan. Un indicador de actividad agrupa las herramientas y los
+mensajes intermedios de cada respuesta, con brillo durante la ejecución y un historial desplegable.
+El resultado final permanece visible. Los iconos usan Lucide mediante `setIcon` de Obsidian, sin fuentes
+ni descargas adicionales. El indicador respeta movimiento reducido y navegación por teclado.
+
+La integración con respuestas simuladas comprueba acceso a guías y herramientas, no que un modelo
+aplique correctamente todas las decisiones de diseño. Consulta `docs/agent-evals.md` para evaluar eso.
 
 `execute_obsidian` recibe el cuerpo de una función async con `app` y `obsidian` ya disponibles.
 `build_plugin` recibe archivos TypeScript normales: empaqueta imports locales y permite los módulos

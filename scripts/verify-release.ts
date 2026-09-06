@@ -26,8 +26,11 @@ while (!(await fetch(`${endpoint}/json/version`).then((response) => response.ok)
   if (Date.now() >= deadline) throw new Error('Obsidian release test profile did not start.');
   await Bun.sleep(250);
 }
-const test = Bun.spawn(['node', '--experimental-strip-types', 'scripts/verify-desktop.ts'], {
-  env: { ...process.env, OBSIDIAN_CDP: endpoint, OBSIDIAN_TEST_VAULT: '.release-vault' },
-  stdout: 'inherit', stderr: 'inherit',
-});
-process.exit(await test.exited);
+for (const script of ['scripts/verify-desktop.ts', 'scripts/verify-chat-ui.ts']) {
+  const test = Bun.spawn(['node', '--experimental-strip-types', script], {
+    env: { ...process.env, OBSIDIAN_CDP: endpoint, OBSIDIAN_TEST_VAULT: '.release-vault' },
+    stdout: 'inherit', stderr: 'inherit',
+  });
+  const code = await test.exited;
+  if (code) process.exit(code);
+}

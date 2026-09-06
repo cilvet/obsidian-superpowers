@@ -41,10 +41,12 @@ try {
       await page.goto(`http://127.0.0.1:${address.port}`);
       // The compiler and context must remain usable without downloading assets.
       await page.context().setOffline(true);
-      const references = await page.evaluate(() => (globalThis as typeof globalThis & { bundledReferences: { system: string; guides: string; declarations: string } }).bundledReferences);
+      const references = await page.evaluate(() => (globalThis as typeof globalThis & { bundledReferences: import('../src/adapters/obsidian/references').ReferenceDocuments }).bundledReferences);
       expect(references.system.length).toBeGreaterThan(500);
       expect(references.guides).toContain('Plugin');
       expect(references.declarations.includes('class Plugin extends Component')).toBe(true);
+      expect(references.skills.map((skill) => skill.id).sort()).toEqual(['architecture', 'desktop-design', 'mobile-design', 'obsidian-data', 'platforms', 'verification']);
+      expect(references.skills.every((skill) => skill.content.length > 500)).toBe(true);
       const result = await page.evaluate(async () => {
         const compiler = (globalThis as typeof globalThis & { compiler: import('../src/adapters/compiler/wasm-compiler').WasmCompiler }).compiler;
         const project = { manifest: { id: 'mobile-probe', name: 'Probe', version: '0.1.0', description: '', author: '', isDesktopOnly: false as const, minAppVersion: '1.8.0' }, entry: 'main.ts', files: { 'main.ts': 'import {message} from "./message"; export default function(){return message}', 'message.ts': 'export const message: string = "WASM works without Node";' } };

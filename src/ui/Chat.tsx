@@ -1,32 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
-import { AssistantRuntimeProvider, ThreadPrimitive, MessagePrimitive, ComposerPrimitive, useAui } from '@assistant-ui/react';
+import { AssistantRuntimeProvider, ThreadPrimitive, MessagePrimitive, ComposerPrimitive, useAui, useAuiState } from '@assistant-ui/react';
 import type { ToolCallMessagePartComponent } from '@assistant-ui/react';
 import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown';
 import type { ChatSession } from '../adapters/ai/session';
+import { Icon } from './Icon';
+import { ActivityGroup } from './ActivityGroup';
+import { activityLabels, activityPresentation, failedResult } from './activity';
 
-const labels: Record<string, string> = {
-  inspect_environment: 'Consultando Obsidian', lookup_reference: 'Consultando la API',
-  list_files: 'Explorando archivos', read_file: 'Leyendo archivo', write_file: 'Guardando archivo',
-  execute_obsidian: 'Ejecutando en Obsidian', read_project: 'Leyendo el plugin', build_plugin: 'Construyendo el plugin',
-};
-
-function failedResult(value: unknown): boolean {
-  return !!value && typeof value === 'object' && (('ok' in value && value.ok === false) || ('result' in value && failedResult(value.result)));
-}
-
-const ToolActivity: ToolCallMessagePartComponent = ({ toolName, args, result, status }) => (
-  <details className="sp-tool" data-status={failedResult(result) ? 'failed' : status.type}>
-    <summary><span className="sp-dot" />{labels[toolName] ?? toolName}<span className="sp-tool-status">{failedResult(result) ? 'Error' : result === undefined ? '…' : 'Listo'}</span></summary>
+const ToolActivity: ToolCallMessagePartComponent = ({ toolName, args, result, status, isError }) => {
+  const failed = isError || failedResult(result);
+  const pending = result === undefined && !failed;
+  const stopped = status.type === 'incomplete';
+  return <details className="sp-tool" data-status={failed ? 'failed' : status.type}>
+    <summary><Icon name={failed ? 'circle-alert' : pending ? (stopped ? 'square' : 'loader-circle') : 'check'} />{activityLabels[toolName] ?? 'Realizando una acción'}<span className="sp-tool-status">{failed ? 'Error' : pending ? stopped ? 'Detenido' : 'En curso' : 'Listo'}</span></summary>
     <pre>{JSON.stringify({ input: args, result }, null, 2)}</pre>
-  </details>
-);
+  </details>;
+};
 
 function MarkdownText() { return <MarkdownTextPrimitive />; }
 
 function AssistantMessage() {
-  return <MessagePrimitive.Root className="sp-message sp-assistant"><div className="sp-author">✦ Superpowers</div><MessagePrimitive.Parts components={{ Text: MarkdownText, tools: { Fallback: ToolActivity } }} /></MessagePrimitive.Root>;
+  const message = useAuiState((state) => state.message);
+  const activity = activityPresentation(message.content, message.status ?? { type: 'complete', reason: 'unknown' });
+  const components = { Text: MarkdownText, tools: { Fallback: ToolActivity } };
+  return <MessagePrimitive.Root className="sp-message sp-assistant"><div className="sp-author"><Icon name="sparkles" /> Superpowers</div>
+    {activity.hasActivity && <ActivityGroup label={activity.label} running={activity.running}>
+      {activity.activityIndices.length ? activity.activityIndices.map((index) => <MessagePrimitive.PartByIndex key={index} index={index} components={components} />) : undefined}
+    </ActivityGroup>}
+    {activity.answerIndices.map((index) => <MessagePrimitive.PartByIndex key={index} index={index} components={components} />)}
+  </MessagePrimitive.Root>;
 }
 
 function UserMessage() {
@@ -77,7 +81,7 @@ function Dictation({ transcribe }: { transcribe: (blob: Blob, signal: AbortSigna
     } catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)); setState('idle'); }
   }
 
-  return <><button type="button" className="sp-icon-button" disabled={state === 'transcribing'} aria-label={state === 'recording' ? 'Terminar dictado' : 'Dictar mensaje'} onClick={() => void record()}>{state === 'recording' ? '● Parar' : state === 'transcribing' ? 'Transcribiendo…' : '🎙'}</button>{error && <span className="sp-error" role="alert">{error}</span>}</>;
+  return <><button type="button" className="sp-icon-button" disabled={state === 'transcribing'} aria-label={state === 'recording' ? 'Terminar dictado' : state === 'transcribing' ? 'Transcribiendo dictado' : 'Dictar mensaje'} onClick={() => void record()}><Icon name={state === 'recording' ? 'square' : state === 'transcribing' ? 'loader-circle' : 'mic'} /></button>{error && <span className="sp-error" role="alert">{error}</span>}</>;
 }
 
 type Props = {
@@ -95,15 +99,14 @@ export function ChatView({ session, modelLabel, openSettings, transcribe }: Prop
   const running = chat.status === 'submitted' || chat.status === 'streaming';
   return <AssistantRuntimeProvider runtime={runtime}>
     <ThreadPrimitive.Root className="sp-chat">
-      <header className="sp-header"><span className="sp-brand">✦ Superpowers</span><div className="sp-header-actions"><button type="button" onClick={() => void session.clear()} disabled={running} aria-label="Nueva conversación">＋</button><button type="button" onClick={openSettings} aria-label="Ajustes de Superpowers">⚙</button></div></header>
+      <header className="sp-header"><span className="sp-brand"><Icon name="sparkles" /> Superpowers</span><div className="sp-header-actions"><button type="button" onClick={() => void session.clear()} disabled={running} aria-label="Nueva conversación"><Icon name="plus" /></button><button type="button" onClick={openSettings} aria-label="Ajustes de Superpowers"><Icon name="settings" /></button></div></header>
       <ThreadPrimitive.Viewport className="sp-viewport">
-        <ThreadPrimitive.Empty><section className="sp-welcome"><span className="sp-mark">✦</span><h2>Tu Obsidian.<br />Tus superpoderes.</h2><p>Describe qué necesitas. Puedo trabajar con tus notas y construir nuevas funcionalidades para ti.</p><div className="sp-examples"><button onClick={() => void chat.sendMessage({ text: 'Explora mi vault y dime qué estructuras y herramientas tengo disponibles.' })}>Explorar mi vault <span>↗</span></button><button onClick={() => void chat.sendMessage({ text: 'Quiero crear una nueva funcionalidad para Obsidian. Ayúdame a concretarla.' })}>Construir algo nuevo <span>↗</span></button></div></section></ThreadPrimitive.Empty>
+        <ThreadPrimitive.Empty><section className="sp-welcome"><span className="sp-mark"><Icon name="sparkles" /></span><h2>Tu Obsidian.<br />Tus superpoderes.</h2><p>Describe qué necesitas. Puedo trabajar con tus notas y construir nuevas funcionalidades para ti.</p><div className="sp-examples"><button onClick={() => void chat.sendMessage({ text: 'Explora mi vault y dime qué estructuras y herramientas tengo disponibles.' })}>Explorar mi vault <Icon name="arrow-up-right" /></button><button onClick={() => void chat.sendMessage({ text: 'Quiero crear una nueva funcionalidad para Obsidian. Ayúdame a concretarla.' })}>Construir algo nuevo <Icon name="arrow-up-right" /></button></div></section></ThreadPrimitive.Empty>
         <ThreadPrimitive.Messages components={{ AssistantMessage, UserMessage }} />
-        {running && <div className="sp-working" role="status">✦ Trabajando…</div>}
       </ThreadPrimitive.Viewport>
       <footer className="sp-footer">
         {chat.error && <div className="sp-error" role="alert">{chat.error.message}<button type="button" onClick={() => chat.clearError()}>Cerrar</button></div>}
-        <ComposerPrimitive.Root className="sp-composer"><ComposerPrimitive.Input className="sp-input" placeholder="¿Qué quieres que haga Obsidian?" aria-label="Mensaje para Superpowers" /><div className="sp-composer-actions"><Dictation transcribe={transcribe} /><button type="button" className="sp-model" onClick={openSettings}>{modelLabel}</button>{running ? <ComposerPrimitive.Cancel className="sp-send" aria-label="Detener agente">■</ComposerPrimitive.Cancel> : <ComposerPrimitive.Send className="sp-send" aria-label="Enviar mensaje">↑</ComposerPrimitive.Send>}</div></ComposerPrimitive.Root>
+        <ComposerPrimitive.Root className="sp-composer"><ComposerPrimitive.Input className="sp-input" placeholder="¿Qué quieres que haga Obsidian?" aria-label="Mensaje para Superpowers" /><div className="sp-composer-actions"><Dictation transcribe={transcribe} /><button type="button" className="sp-model" onClick={openSettings}>{modelLabel}</button>{running ? <ComposerPrimitive.Cancel className="sp-send" aria-label="Detener agente"><Icon name="square" /></ComposerPrimitive.Cancel> : <ComposerPrimitive.Send className="sp-send" aria-label="Enviar mensaje"><Icon name="arrow-up" /></ComposerPrimitive.Send>}</div></ComposerPrimitive.Root>
         <p className="sp-caption">En tu vault · Con tu API key</p>
       </footer>
     </ThreadPrimitive.Root>
