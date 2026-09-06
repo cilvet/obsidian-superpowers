@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.dev-vault/
+.dev-profile/
+.env
+.env.*
+!.env.example
+artifacts/
+.DS_Store

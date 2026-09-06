@@ -1,0 +1,48 @@
+.sp-root { height: 100%; min-height: 0; padding: 0 !important; --sp-accent: var(--interactive-accent, #9279d3); }
+.sp-root * { box-sizing: border-box; }
+.sp-chat { display: flex; flex-direction: column; height: 100%; min-height: 0; color: var(--text-normal); background: var(--background-primary); font-family: var(--font-interface); font-size: var(--font-ui-small, 14px); }
+.sp-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--background-modifier-border); flex: 0 0 auto; }
+.sp-brand { font-weight: 650; letter-spacing: -.02em; }
+.sp-header-actions { display: flex; gap: 6px; }
+.sp-root .sp-header-actions button { width: 34px; height: 34px; padding: 0; background: transparent; box-shadow: none; border: none; color: var(--text-muted); font-size: 20px; }
+.sp-viewport { flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 24px 20px; overscroll-behavior: contain; }
+.sp-welcome { max-width: 480px; margin: clamp(16px, 9vh, 100px) auto 28px; }
+.sp-mark { font-size: 42px; color: var(--sp-accent); display: inline-block; margin-bottom: 18px; }
+.sp-welcome h2 { font-size: clamp(26px, 5vw, 34px); line-height: 1.17; letter-spacing: -.045em; margin: 0 0 16px; font-weight: 600; }
+.sp-welcome p { color: var(--text-muted); line-height: 1.65; max-width: 340px; }
+.sp-examples { display: grid; gap: 10px; margin-top: 28px; }
+.sp-root .sp-examples button { display: flex; justify-content: space-between; width: 100%; height: auto; text-align: left; white-space: normal; padding: 15px; font-size: 13px; background: var(--background-secondary); border: 1px solid var(--background-modifier-border); box-shadow: none; border-radius: 10px; }
+.sp-examples span { color: var(--text-faint); margin-left: 12px; }
+.sp-message { max-width: 760px; margin: 0 auto 25px; line-height: 1.65; overflow-wrap: anywhere; }
+.sp-message p { margin: 0 0 .75em; }
+.sp-author { color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: .025em; margin-bottom: 10px; }
+.sp-user { margin-left: auto; margin-right: 0; max-width: min(88%, 660px); background: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 15px 15px 3px 15px; padding: 12px 16px; }
+.sp-user p:last-child, .sp-assistant p:last-child { margin-bottom: 0; }
+.sp-message pre, .sp-tool pre { max-width: 100%; overflow-x: auto; padding: 12px; border-radius: 7px; font-size: 12px; background: var(--background-secondary); white-space: pre-wrap; }
+.sp-message code { font-family: var(--font-monospace); }
+.sp-tool { border: 1px solid var(--background-modifier-border); border-radius: 8px; padding: 10px 12px; margin: 9px 0; font-size: 12px; }
+.sp-tool summary { cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+.sp-tool-status { margin-left: auto; font-size: 10px; }
+.sp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--sp-accent); }
+.sp-tool[data-status="failed"] .sp-dot { background: var(--text-error); }
+.sp-working { color: var(--text-muted); font-size: 12px; padding-bottom: 14px; }
+.sp-footer { flex: 0 0 auto; padding: 12px 14px max(8px, env(safe-area-inset-bottom)); }
+.sp-composer { padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 14px; background: var(--background-primary-alt); box-shadow: 0 3px 16px #00000008; }
+.sp-root .sp-input { display: block; width: 100%; min-height: 56px; max-height: 180px; resize: none; padding: 6px; background: transparent; border: 0; box-shadow: none; font: inherit; color: var(--text-normal); line-height: 1.5; outline: none; }
+.sp-composer:focus-within { border-color: var(--sp-accent); }
+.sp-composer-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sp-root .sp-icon-button, .sp-root .sp-model { background: transparent; box-shadow: none; border: 0; color: var(--text-muted); height: 32px; padding: 4px 6px; }
+.sp-root .sp-model { font-size: 10px; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+.sp-root .sp-send { margin-left: auto; min-width: 36px; height: 34px; border: 0; border-radius: 9px; background: var(--sp-accent); color: var(--text-on-accent, white); font-size: 20px; box-shadow: none; }
+.sp-caption { font-size: 10px; text-align: center; color: var(--text-faint); margin: 8px 0 0; }
+.sp-error { color: var(--text-error); font-size: 12px; padding: 8px 0; overflow-wrap: anywhere; }
+.sp-error button { margin-left: 8px; }
+.sp-root button { cursor: pointer; }
+.sp-root button:disabled { cursor: default; opacity: .45; }
+@media (max-width: 480px) {
+  .sp-header { padding: 10px 12px; }
+  .sp-viewport { padding: 18px 14px; }
+  .sp-root .sp-input { font-size: 16px; }
+  .sp-root .sp-send, .sp-root .sp-icon-button, .sp-root .sp-header-actions button { min-height: 44px; min-width: 44px; }
+  .sp-footer { padding-left: 10px; padding-right: 10px; }
+}
