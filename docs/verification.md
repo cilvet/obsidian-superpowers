@@ -33,10 +33,23 @@ manifiesto en memoria del cargador interno, y la espera a que el workspace esté
 
 - `bun run check`
 - `bun run dev:obsidian` y `bun run verify:desktop`
+- `bun run verify:release` (macOS, vault y perfil distintos del desarrollo)
 - `artifacts/desktop-verification.json`
 - `artifacts/mobile-browser-verification.json`
 - `artifacts/desktop-plugin-chat.png`
 - `artifacts/obsidian-mobile-emulation.png`
+
+## Paquete para BRAT 0.1.0
+
+Se repitió la integración en Obsidian 1.12.4 usando `.release-vault`, con únicamente los
+tres archivos de distribución instalados y sin carpeta `assets/`. Pasaron el chat de los
+tres proveedores con respuestas simuladas, consulta de referencias, compilación y reparación,
+instalación, comandos, actualización, rollback, persistencia, cancelación y emulación móvil.
+No se registraron errores de página. El fallo de onload provocado se recuperó correctamente.
+
+Chromium y WebKit compilaron usando el WASM integrado con la red desconectada tras cargar
+el bundle. Las referencias también estaban disponibles sin acceso a archivos auxiliares.
+Los avisos de dependencias se incluyen en el JavaScript distribuido.
 
 ## Pendiente de validar
 

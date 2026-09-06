@@ -30,10 +30,43 @@ una API key y el ID del modelo. Puedes cambiar de proveedor sin cambiar el chat.
 Las claves se guardan en el almacenamiento local del dispositivo, fuera de los archivos sincronizables del vault.
 El dictado requiere una clave de OpenAI; también puedes utilizar el dictado del teclado.
 
-Para instalar manualmente en escritorio o móvil, copia el contenido de `dist/` (incluida **assets/**)
-a `<vault>/<configDir>/plugins/obsidian-superpowers/` y habilita el plugin.
+Para instalar manualmente en escritorio o móvil, copia únicamente `dist/main.js`,
+`dist/manifest.json` y `dist/styles.css` a `<vault>/<configDir>/plugins/obsidian-superpowers/`
+y habilita el plugin. El compilador WASM, las referencias y los avisos de dependencias
+están integrados en `main.js`; no se descarga ningún recurso adicional para compilar.
 `configDir` normalmente es `.obsidian`. La activación de plugins generados utiliza un adaptador
 para APIs internas de Obsidian; puede requerir ajustes cuando cambie el cargador de Obsidian.
+
+## Instalar la beta con BRAT (iPhone, Android o escritorio)
+
+1. Instala y activa **BRAT** desde los plugins de la comunidad de Obsidian.
+2. Este repositorio es privado. En GitHub, crea un **fine-grained personal access token**
+   con acceso únicamente a `cilvet/obsidian-superpowers` y permiso **Contents: Read-only**.
+   Introduce ese token en BRAT para acceder al repositorio; no es la API key del modelo.
+3. Ejecuta el comando de BRAT **Add a beta plugin for testing** y añade
+   `https://github.com/cilvet/obsidian-superpowers`. Selecciona la versión `0.1.0`.
+4. Activa **Superpowers** en los plugins instalados, configura tu proveedor y API key,
+   y ejecuta **Superpowers: Abrir chat**.
+
+Cada dispositivo necesita su propia configuración de credenciales. Obsidian Sync no es
+necesario para instalar la beta. Para probarla, pide un plugin con un comando que añada
+la fecha actual a una nota y comprueba su resultado al ejecutar el comando.
+
+Los colaboradores necesitan acceso al repositorio privado y un token propio con permisos
+de lectura. Si el repositorio se hace público, ese requisito de autenticación desaparece.
+BRAT permite instalar actualizaciones desde las releases de GitHub.
+
+- [Releases de Superpowers](https://github.com/cilvet/obsidian-superpowers/releases)
+- [Guía de BRAT, incluidos repositorios privados](https://github.com/TfTHacker/obsidian42-brat/blob/main/BRAT-DEVELOPER-GUIDE.md)
+
+## Conexiones y datos
+
+El chat envía los mensajes, el contexto y los resultados de las herramientas al proveedor
+seleccionado (OpenAI, Anthropic o Google). Eso puede incluir contenido del vault que el
+agente lea. El dictado envía el audio a OpenAI. Se necesita una cuenta y una API key del
+proveedor correspondiente; su uso puede generar costes según sus tarifas.
+No hay servidor de Superpowers ni telemetría propia. Las claves de los proveedores se
+guardan por dispositivo y no se incluyen en los archivos que sincroniza Obsidian Sync.
 
 ## Comprobaciones
 
@@ -43,6 +76,7 @@ PLAYWRIGHT_SKIP_BROWSER_GC=1 bunx playwright install chromium webkit
 
 bun run check             # Tipos, pruebas de comportamiento, build y navegadores sin Node.
 bun run verify:desktop    # Obsidian debe estar abierto con el perfil de pruebas.
+bun run verify:release    # macOS: instala los tres archivos y abre otra instancia aislada.
 ```
 
 `verify:desktop` utiliza las APIs reales del Obsidian instalado y respuestas de proveedor simuladas.
@@ -50,8 +84,12 @@ Comprueba chat, herramientas, mensajes de continuación, compilación WASM, acti
 recuperación de fallos, independencia de los plugins, cancelación y persistencia.
 Además activa la emulación móvil de Obsidian. No equivale a probar un teléfono físico.
 
-Las pruebas de navegador compilan en Chromium y WebKit sin `process` ni `require` globales.
+Las pruebas de navegador compilan en Chromium y WebKit sin `process` ni `require` globales,
+con la red desconectada después de cargar el bundle y usando los recursos integrados.
 Informes y capturas se guardan en `artifacts/` y no se versionan.
+`verify:release` usa `.release-vault`, `.release-profile` y el puerto local 9238, para
+no interrumpir una conversación en el vault de desarrollo. Las verificaciones de escritorio
+usan un espacio separado de credenciales de prueba y restauran ajustes e historial al terminar.
 
 ### Evaluaciones con modelos reales
 

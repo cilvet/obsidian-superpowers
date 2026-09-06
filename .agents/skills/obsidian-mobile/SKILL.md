@@ -7,7 +7,8 @@ Runtime code runs in Obsidian's WebView. Use Vault/DataAdapter, Web APIs and req
 never FileSystemAdapter, Electron, Node builtins or subprocesses. Paths are vault-relative,
 and the configuration directory is `app.vault.configDir`, not a hardcoded `.obsidian`.
 
-Load the WASM compiler from the installed plugin's assets. Keep its initialization lazy.
+Bundle the WASM compiler and API references inside main.js; BRAT installs only main.js,
+manifest.json and styles.css. Keep WASM decoding and initialization lazy, using Web APIs.
 Generated plugins must bundle local imports and externalize only runtime modules Obsidian provides.
 Unknown imports must produce actionable errors, not become unresolved runtime `require` calls.
 

@@ -12,6 +12,7 @@
     "check": "bun run typecheck && bun run test && bun run build && bun run verify:mobile",
     "verify:mobile": "node --experimental-strip-types scripts/verify-mobile.ts",
     "verify:desktop": "node --experimental-strip-types scripts/verify-desktop.ts",
+    "verify:release": "bun scripts/verify-release.ts",
     "dev:vault": "bun scripts/dev-vault.ts",
     "dev:obsidian": "bun run build && bun run dev:vault && bun scripts/open-obsidian.ts",
     "eval": "node --experimental-strip-types scripts/eval.ts"

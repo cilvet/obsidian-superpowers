@@ -4,6 +4,7 @@ import { openaiEvents, anthropicEvents, googleEvents } from './support/protocol-
 import type { Reply } from './support/protocol-fixtures.ts';
 import type Superpowers from '../src/main';
 import type { App, Command } from 'obsidian';
+import type { UIMessage } from 'ai';
 
 declare const app: App & {
   plugins: { plugins: Record<string, Superpowers>; enabledPlugins: Set<string>; enablePlugin(id: string): Promise<void>; disablePlugin(id: string): Promise<void> };
@@ -23,6 +24,7 @@ const page = browser.contexts()[0]?.pages().find((candidate) => candidate.url().
 if (!page) throw new Error('Open the isolated Obsidian test profile first.');
 const findings: string[] = [];
 const pageErrors: string[] = [];
+let original: { settings: Superpowers['settings']; messages: UIMessage[] } | undefined;
 page.on('pageerror', (error) => { pageErrors.push(error.message); console.error('Page error:', error.message); });
 page.on('console', (message) => { if (message.type() === 'error') console.error('Obsidian:', message.text().slice(0, 400)); });
 async function emulateMobile(enabled: boolean) {
@@ -38,8 +40,24 @@ async function emulateMobile(enabled: boolean) {
   await page!.evaluate(() => app.plugins.plugins['obsidian-superpowers']!.openChat());
 }
 try {
+  await page.waitForFunction(() => 'app' in window && app.vault, undefined, { timeout: 20000 });
   const vault = await page.evaluate(() => app.vault.getName());
-  if (vault !== '.dev-vault') throw new Error('Desktop verification only runs in the isolated .dev-vault.');
+  const expectedVault = process.env.OBSIDIAN_TEST_VAULT ?? '.dev-vault';
+  if (!['.dev-vault', '.release-vault'].includes(expectedVault) || vault !== expectedVault) throw new Error('Desktop verification only runs in the configured isolated test vault.');
+  const trust = page.getByRole('button', { name: /^(Confiar en el autor y activar complementos|Trust author and enable plugins)$/ });
+  if (await trust.isVisible()) await trust.click();
+  await page.waitForFunction(() => app.plugins?.plugins['obsidian-superpowers'], undefined, { timeout: 20000 });
+  original = await page.evaluate(async () => {
+    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    if (['submitted', 'streaming'].includes(plugin.session.chat.status)) throw new Error('Wait for the active conversation before running desktop verification.');
+    const saved = { settings: structuredClone(plugin.settings), messages: structuredClone(plugin.session.chat.messages) };
+    // Fixtures get a separate credential namespace; never replace real API keys.
+    plugin.settings.credentialNamespace = crypto.randomUUID();
+    await plugin.saveSettings();
+    return saved;
+  });
+  expect(await page.evaluate(() => app.vault.adapter.exists(`${app.vault.configDir}/plugins/obsidian-superpowers/assets`))).toBe(false);
+  findings.push('Installation has no assets directory: compiler and API references are embedded in main.js.');
   await emulateMobile(false);
   await page.evaluate(async () => {
     app.setting.close();
@@ -213,6 +231,17 @@ try {
   console.log(JSON.stringify(report, null, 2));
 } finally {
   await page.evaluate(() => { if (window.spFixture) { globalThis.fetch = window.spFixture.original; delete window.spFixture; } }).catch(() => undefined);
+  if (original) await page.evaluate(async (saved) => {
+    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    await plugin.session.stop();
+    plugin.settings = saved.settings;
+    await plugin.saveSettings();
+    plugin.session.chat.messages = saved.messages;
+    await plugin.session.save();
+    await app.plugins.disablePlugin('obsidian-superpowers');
+    await app.plugins.enablePlugin('obsidian-superpowers');
+    await app.plugins.plugins['obsidian-superpowers']!.openChat();
+  }, original);
   await page.unrouteAll();
   await browser.close();
 }

@@ -1,26 +1,16 @@
 import type { ReferencePort, VaultPort } from '../../application/ports';
 
 export class LocalReferences implements ReferencePort {
-  private docs?: Promise<{ system: string; guides: string; declarations: string }>;
-  constructor(private readonly vault: VaultPort, private readonly assetRoot: string) {}
-
-  private load() {
-    this.docs ??= Promise.all([
-      this.vault.read(`${this.assetRoot}/system.md`),
-      this.vault.read(`${this.assetRoot}/guides.md`),
-      this.vault.read(`${this.assetRoot}/obsidian.d.ts`),
-    ]).then(([system, guides, declarations]) => ({ system, guides, declarations }));
-    return this.docs;
-  }
+  constructor(private readonly vault: VaultPort, private readonly docs: Readonly<{ system: string; guides: string; declarations: string }>) {}
 
   async instructions() {
-    const { system } = await this.load();
+    const { system } = this.docs;
     const user = await this.vault.exists('SUPERPOWERS.md') ? await this.vault.read('SUPERPOWERS.md') : '';
     return user ? `${system}\n\n## User vault conventions (SUPERPOWERS.md)\n${user.slice(0, 16000)}` : system;
   }
 
   async lookup(query: string) {
-    const { guides, declarations } = await this.load();
+    const { guides, declarations } = this.docs;
     if (/^(plugins?|obsidian|mobile|bases|imports?|guide)$/i.test(query.trim())) return guides;
     const lines = declarations.split('\n');
     const needle = query.toLowerCase().trim();

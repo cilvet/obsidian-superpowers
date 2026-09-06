@@ -1,17 +1,46 @@
 import { build, context } from 'esbuild';
-import { mkdir, copyFile, readFile } from 'node:fs/promises';
+import type { Plugin } from 'esbuild';
+import { mkdir, copyFile, readFile, rm, appendFile } from 'node:fs/promises';
 import { hostModules } from '../src/adapters/compiler/virtual-files';
+import { bundledAssets } from './support/bundled-assets';
 
-await mkdir('dist/assets', { recursive: true });
+// dist is generated output; start clean so old assets cannot hide packaging errors.
+await rm('dist', { recursive: true, force: true });
+await mkdir('dist', { recursive: true });
 await Promise.all([
   copyFile('manifest.json', 'dist/manifest.json'),
   copyFile('src/ui/styles.css', 'dist/styles.css'),
-  copyFile('node_modules/esbuild-wasm/esbuild.wasm', 'dist/assets/esbuild.wasm'),
-  copyFile('node_modules/obsidian/obsidian.d.ts', 'dist/assets/obsidian.d.ts'),
-  copyFile('node_modules/obsidian/LICENSE.md', 'dist/assets/OBSIDIAN-LICENSE.md'),
-  copyFile('context/system.md', 'dist/assets/system.md'),
 ]);
-await Bun.write('dist/assets/guides.md', `${await Bun.file('context/plugins.md').text()}\n\n${await Bun.file('context/obsidian.md').text()}`);
+const licenses: Plugin = {
+  name: 'bundled-license-notices',
+  setup(builder) {
+    builder.onEnd(async (result) => {
+      if (result.errors.length || !result.metafile) return;
+      await Bun.write('dist/meta.json', JSON.stringify(result.metafile));
+      const packages = new Set(['obsidian', 'esbuild-wasm', ...Object.keys(result.metafile.inputs).flatMap((path) => {
+        const match = path.match(/node_modules\/((?:@[^/]+\/)?[^/]+)/);
+        return match?.[1] ? [match[1]] : [];
+      })]);
+      const notices: string[] = [await readFile('scripts/licenses/Apache-2.0.txt', 'utf8')];
+      const fallbacks: Record<string, string> = { '@ai-sdk/provider-utils': 'ai-sdk.txt', 'react-remove-scroll-bar': 'react-remove-scroll-bar.txt', 'use-composed-ref': 'use-composed-ref.txt' };
+      for (const name of [...packages].sort()) {
+        const root = `node_modules/${name}`;
+        const metadata = JSON.parse(await readFile(`${root}/package.json`, 'utf8')) as { version: string; license?: string };
+        let license = '';
+        for (const filename of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'license', 'license.md']) {
+          try { license = await readFile(`${root}/${filename}`, 'utf8'); break; } catch { /* Package license filenames vary. */ }
+        }
+        if (!license && fallbacks[name]) license = await readFile(`scripts/licenses/${fallbacks[name]}`, 'utf8');
+        if (!license) throw new Error(`Missing license text for bundled dependency ${name}`);
+        notices.push(`## ${name} ${metadata.version}\nLicense: ${metadata.license ?? 'See package metadata'}\n\n${license}`);
+      }
+      const text = notices.join('\n\n---\n\n');
+      await Bun.write('dist/THIRD-PARTY-NOTICES.md', text);
+      // BRAT installs three files only: required attribution must travel inside main.js.
+      await appendFile('dist/main.js', `\n/*! Third-party notices\n${text.replaceAll('*/', '* /')}\n*/\n`);
+    });
+  },
+};
 const options = {
   entryPoints: ['src/main.tsx'],
   bundle: true,
@@ -25,29 +54,14 @@ const options = {
   metafile: true,
   minify: true,
   sourcemap: 'external' as const,
-  legalComments: 'linked' as const,
+  legalComments: 'inline' as const,
+  plugins: [bundledAssets, licenses],
 };
 if (process.argv.includes('--watch')) {
   const watcher = await context(options);
   await watcher.watch();
   console.log('Watching source. Run bun run dev:vault to sync the isolated test vault.');
 } else {
-  const result = await build(options);
-  await Bun.write('dist/meta.json', JSON.stringify(result.metafile));
-  const packages = new Set(Object.keys(result.metafile.inputs).flatMap((path) => {
-    const match = path.match(/node_modules\/((?:@[^/]+\/)?[^/]+)/);
-    return match?.[1] ? [match[1]] : [];
-  }));
-  const notices: string[] = [];
-  for (const name of [...packages].sort()) {
-    const root = `node_modules/${name}`;
-    const metadata = JSON.parse(await readFile(`${root}/package.json`, 'utf8')) as { version: string; license?: string };
-    let license = '';
-    for (const filename of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'license', 'license.md']) {
-      try { license = await readFile(`${root}/${filename}`, 'utf8'); break; } catch { /* Different packages use different license filenames. */ }
-    }
-    notices.push(`## ${name} ${metadata.version}\nLicense: ${metadata.license ?? 'See package metadata'}\n\n${license}`);
-  }
-  await Bun.write('dist/THIRD-PARTY-NOTICES.md', notices.join('\n\n---\n\n'));
-  console.log('Plugin built in dist/ (including mobile WASM and API references).');
+  await build(options);
+  console.log('Plugin built in dist/: main.js, manifest.json and styles.css are sufficient for installation.');
 }

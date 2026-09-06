@@ -9,6 +9,9 @@
 - Autonomía de ejecución completa; validaciones de compatibilidad y recuperación de fallos, sin aprobaciones.
 - Plugins independientes en el cargador real de Obsidian. El adaptador concentra las APIs internas.
 - Compilación WASM empaquetada y diferida. Sin CDN para el compilador, ni imports npm sin resolver.
+- Distribución para BRAT en tres archivos: `main.js`, `manifest.json`, `styles.css`.
+  El WASM en base64, las referencias y los avisos de dependencias van dentro de `main.js`.
+  La conversión a bytes y la inicialización del compilador ocurren al usarlo por primera vez.
 - Código de herramientas con contexto inyectado; código de plugins con imports y exportación convencional.
 - Guías cortas, declaraciones de API consultables y convenciones opcionales del vault.
 - Pruebas de resultados reales: archivos, comandos, carga, limpieza y reparación. Las respuestas simuladas

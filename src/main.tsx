@@ -9,6 +9,7 @@ import { ObsidianVault } from './adapters/obsidian/vault';
 import { ObsidianPluginHost } from './adapters/obsidian/plugin-host';
 import { ObsidianRuntime } from './adapters/obsidian/runtime';
 import { LocalReferences } from './adapters/obsidian/references';
+import { bundledReferences, loadCompilerWasm } from './adapters/bundled-assets';
 import { obsidianFetch } from './adapters/obsidian/network';
 import { createTools } from './adapters/ai/tools';
 import { ChatSession, loadHistory } from './adapters/ai/session';
@@ -50,10 +51,10 @@ export default class Superpowers extends Plugin {
     this.credentials = new DeviceCredentials(this.settings.credentialNamespace, window.localStorage);
     const folder = this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
     const vault = new ObsidianVault(this.app);
-    const compiler = new WasmCompiler(() => this.app.vault.adapter.readBinary(`${folder}/assets/esbuild.wasm`));
+    const compiler = new WasmCompiler(loadCompilerWasm);
     this.studio = new Studio(vault, compiler, new ObsidianPluginHost(this.app));
     this.runtime = new ObsidianRuntime(this.app, this, compiler);
-    this.references = new LocalReferences(vault, `${folder}/assets`);
+    this.references = new LocalReferences(vault, bundledReferences);
     const historyPath = `${folder}/history.json`;
     let history: UIMessage[];
     try { history = await loadHistory(vault, historyPath); }
