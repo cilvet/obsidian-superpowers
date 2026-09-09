@@ -1,9 +1,9 @@
 {
   "id": "superpowers",
   "name": "Superpowers",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "minAppVersion": "1.12.4",
-  "description": "Build and evolve your own Obsidian capabilities through conversation.",
+  "description": "Chat with your notes and create new features through conversation.",
   "author": "Iñigo Cilveti",
   "isDesktopOnly": false
 }

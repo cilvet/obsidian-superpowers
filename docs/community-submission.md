@@ -1,6 +1,7 @@
 # Community directory submission
 
-Prepared on 2026-09-09. Submission has **not** been sent: the Obsidian account login is pending.
+Prepared on 2026-09-09. The user supplied directory review feedback rejecting the word
+"Obsidian" in the manifest description. Version 0.3.1 removes it. Directory acceptance is not yet confirmed.
 
 ## Entry
 
@@ -8,13 +9,13 @@ Prepared on 2026-09-09. Submission has **not** been sent: the Obsidian account l
 - Owner: personal GitHub account `cilvet`.
 - Plugin ID: `superpowers`.
 - Name: Superpowers.
-- Version: `0.3.0`.
+- Version: `0.3.1`.
 - Minimum app version: `1.12.4`, the desktop version used for integration testing.
 - Platforms: desktop and mobile; physical phones have not been verified.
 - License: MIT, with bundled third-party license notices inside `main.js`.
 - Payment: Superpowers is free. Users supply their own provider accounts/API keys;
   usage may require payment to OpenAI, Anthropic or Google. Disclose third-party costs in the listing.
-- Description: Build and evolve your own Obsidian capabilities through conversation.
+- Description: Chat with your notes and create new features through conversation.
 
 ## Suggested listing text
 
@@ -66,13 +67,10 @@ Directory acceptance of the dynamic execution model must be confirmed by its act
 - The beta ID migration copies settings, credential namespace, history and project sources;
   it preserves existing destination files and can resume after an interrupted copy.
 
-## Remaining submission steps
+## Remaining review steps
 
-1. Sign in to https://community.obsidian.md with the owner's Obsidian account.
-2. Connect the personal GitHub account `cilvet` and inspect the requested read-only profile access.
-3. Under Plugins, choose New plugin and enter the repository URL and personal owner.
-4. Review the developer-policy and continued-support confirmations, then submit.
-5. Inspect the actual automated review, address feedback, and publish the listing when accepted.
+Inspect the directory's review of version 0.3.1, address any further feedback, and publish
+the listing when accepted.
 
 References: [submission guide](https://docs.obsidian.md/plugins/releasing/submit-plugin),
 [developer policies](https://docs.obsidian.md/community-directory/developer-policies),
