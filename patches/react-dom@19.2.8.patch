@@ -1,0 +1,151 @@
+diff --git a/cjs/react-dom-client.production.js b/cjs/react-dom-client.production.js
+index 819490488703bbf88d7d8a565993989bff55f570..5dfdcfaeb04bc8decf2d1df3adc5dbc757e03dda 100644
+--- a/cjs/react-dom-client.production.js
++++ b/cjs/react-dom-client.production.js
+@@ -8048,6 +8048,8 @@ function completeWork(current, workInProgress, renderLanes) {
+     case 5:
+       popHostContext(workInProgress);
+       type = workInProgress.type;
++      if (type === "script")
++        throw Error("Superpowers chat does not support script elements.");
+       if (null !== current && null != workInProgress.stateNode)
+         current.memoizedProps !== newProps && markUpdate(workInProgress);
+       else {
+@@ -8092,12 +8094,7 @@ function completeWork(current, workInProgress, renderLanes) {
+                   );
+                   break;
+                 case "script":
+-                  nextResource = ownerDocument.createElement("div");
+-                  nextResource.innerHTML = "<script>\x3c/script>";
+-                  nextResource = nextResource.removeChild(
+-                    nextResource.firstChild
+-                  );
+-                  break;
++                  throw Error("Superpowers chat does not support script elements.");
+                 case "select":
+                   nextResource =
+                     "string" === typeof newProps.is
+@@ -14549,57 +14546,13 @@ function preinitStyle(href, precedence, options) {
+     }
+   }
+ }
+-function preinitScript(src, options) {
+-  previousDispatcher.X(src, options);
+-  var ownerDocument = globalDocument;
+-  if (ownerDocument && src) {
+-    var scripts = getResourcesFromRoot(ownerDocument).hoistableScripts,
+-      key = getScriptKey(src),
+-      resource = scripts.get(key);
+-    resource ||
+-      ((resource = ownerDocument.querySelector(getScriptSelectorFromKey(key))),
+-      resource ||
+-        ((src = assign({ src: src, async: !0 }, options)),
+-        (options = preloadPropsMap.get(key)) &&
+-          adoptPreloadPropsForScript(src, options),
+-        (resource = ownerDocument.createElement("script")),
+-        markNodeAsHoistable(resource),
+-        setInitialProperties(resource, "link", src),
+-        ownerDocument.head.appendChild(resource)),
+-      (resource = {
+-        type: "script",
+-        instance: resource,
+-        count: 1,
+-        state: null
+-      }),
+-      scripts.set(key, resource));
+-  }
++// Superpowers: the chat renderer never loads JavaScript resources.
++// Generated code runs through the separately disclosed Obsidian runtime adapter.
++function preinitScript() {
++  throw Error("Superpowers chat does not support script resources.");
+ }
+-function preinitModuleScript(src, options) {
+-  previousDispatcher.M(src, options);
+-  var ownerDocument = globalDocument;
+-  if (ownerDocument && src) {
+-    var scripts = getResourcesFromRoot(ownerDocument).hoistableScripts,
+-      key = getScriptKey(src),
+-      resource = scripts.get(key);
+-    resource ||
+-      ((resource = ownerDocument.querySelector(getScriptSelectorFromKey(key))),
+-      resource ||
+-        ((src = assign({ src: src, async: !0, type: "module" }, options)),
+-        (options = preloadPropsMap.get(key)) &&
+-          adoptPreloadPropsForScript(src, options),
+-        (resource = ownerDocument.createElement("script")),
+-        markNodeAsHoistable(resource),
+-        setInitialProperties(resource, "link", src),
+-        ownerDocument.head.appendChild(resource)),
+-      (resource = {
+-        type: "script",
+-        instance: resource,
+-        count: 1,
+-        state: null
+-      }),
+-      scripts.set(key, resource));
+-  }
++function preinitModuleScript() {
++  throw Error("Superpowers chat does not support script resources.");
+ }
+ function getResource(type, currentProps, pendingProps, currentResource) {
+   var JSCompiler_inline_result = (JSCompiler_inline_result =
+@@ -14683,29 +14636,7 @@ function getResource(type, currentProps, pendingProps, currentResource) {
+         throw Error(formatProdErrorMessage(529, ""));
+       return null;
+     case "script":
+-      return (
+-        (currentProps = pendingProps.async),
+-        (pendingProps = pendingProps.src),
+-        "string" === typeof pendingProps &&
+-        currentProps &&
+-        "function" !== typeof currentProps &&
+-        "symbol" !== typeof currentProps
+-          ? ((currentProps = getScriptKey(pendingProps)),
+-            (pendingProps = getResourcesFromRoot(
+-              JSCompiler_inline_result
+-            ).hoistableScripts),
+-            (currentResource = pendingProps.get(currentProps)),
+-            currentResource ||
+-              ((currentResource = {
+-                type: "script",
+-                instance: null,
+-                count: 0,
+-                state: null
+-              }),
+-              pendingProps.set(currentProps, currentResource)),
+-            currentResource)
+-          : { type: "void", instance: null, count: 0, state: null }
+-      );
++      throw Error("Superpowers chat does not support script resources.");
+     default:
+       throw Error(formatProdErrorMessage(444, type));
+   }
+@@ -14801,27 +14732,7 @@ function acquireResource(hoistableRoot, resource, props) {
+         insertStylesheet(instance$249, props.precedence, hoistableRoot);
+         return (resource.instance = instance$249);
+       case "script":
+-        instance$249 = getScriptKey(props.src);
+-        if (
+-          (styleProps = hoistableRoot.querySelector(
+-            getScriptSelectorFromKey(instance$249)
+-          ))
+-        )
+-          return (
+-            (resource.instance = styleProps),
+-            markNodeAsHoistable(styleProps),
+-            styleProps
+-          );
+-        instance = props;
+-        if ((styleProps = preloadPropsMap.get(instance$249)))
+-          (instance = assign({}, props)),
+-            adoptPreloadPropsForScript(instance, styleProps);
+-        hoistableRoot = hoistableRoot.ownerDocument || hoistableRoot;
+-        styleProps = hoistableRoot.createElement("script");
+-        markNodeAsHoistable(styleProps);
+-        setInitialProperties(styleProps, "link", instance);
+-        hoistableRoot.head.appendChild(styleProps);
+-        return (resource.instance = styleProps);
++        throw Error("Superpowers chat does not support script resources.");
+       case "void":
+         return null;
+       default:

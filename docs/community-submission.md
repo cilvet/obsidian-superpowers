@@ -1,7 +1,7 @@
 # Community directory submission
 
 Prepared on 2026-09-09. The user supplied directory review feedback rejecting the word
-"Obsidian" in the manifest description. Version 0.3.1 removes it. Directory acceptance is not yet confirmed.
+"Obsidian" in the manifest description. Version 0.3.1 removed it; version 0.3.2 addresses the subsequent source and packaging feedback. Directory acceptance is not yet confirmed.
 
 ## Entry
 
@@ -9,7 +9,7 @@ Prepared on 2026-09-09. The user supplied directory review feedback rejecting th
 - Owner: personal GitHub account `cilvet`.
 - Plugin ID: `superpowers`.
 - Name: Superpowers.
-- Version: `0.3.1`.
+- Version: `0.3.2`.
 - Minimum app version: `1.12.4`, the desktop version used for integration testing.
 - Platforms: desktop and mobile; physical phones have not been verified.
 - License: MIT, with bundled third-party license notices inside `main.js`.
@@ -47,13 +47,32 @@ Generated plugins are independent output, not dependencies of Superpowers. The b
 both current and legacy Superpowers IDs. Superpowers does not update itself or download runtime
 dependencies. Its general execution tool is powerful and is not claimed to enforce confinement.
 
-The official local linter remains enabled without suppressing these findings. `bun run lint`
-currently reports three errors at the Function invocation (`no-implied-eval`, `no-unsafe-call`
-and the Obsidian `no-new-func` custom message). These are disclosed for review, not claimed fixed.
-It also warns about streaming fetch, deprecated assistant-ui interfaces, sentence casing and the
-newer settings-search interface. Streaming fetch has a requestUrl fallback for CORS failures;
-the settings tab retains the display API for Obsidian 1.12.4 compatibility.
-Directory acceptance of the dynamic execution model must be confirmed by its actual review.
+### Changes for the 0.3.2 review
+
+The three literal dynamic script creations in the old bundle originated in React DOM's
+production client renderer. A version-specific Bun patch removes the script preinitialization
+and acquisition paths, replacing them with explicit errors; script rendering is also rejected.
+This removes a capability the chat does not use. It is not a spelling change to bypass scanning.
+The patch and rationale are available in `patches/`. Compiler/agent execution remains disclosed.
+
+The compiler is now gzip-compressed inside the bundle, and decompressed lazily in memory with
+`DecompressionStream`. Compression applies only to the bundled WASM asset; JavaScript remains
+statically visible. This reduces main.js from about 21 MB to 7.4 MB, still above Sync Standard's
+5 MB limit. Users on that plan must install/update the plugin on each device, e.g. with BRAT.
+
+The official local linter remains enabled without suppression. It now reports two errors at
+the intentional Function construction (`no-implied-eval` and the Obsidian `no-new-func` message),
+plus a streaming fetch warning. The unsafe-call warning, deprecated chat APIs, settings-search
+warning and CSS !important have been addressed. Streaming fetch is needed for incremental
+responses and cancellation, with requestUrl as the native buffered fallback for CORS failures.
+
+Vault enumeration is required for discovery. The environment inspector checks clipboard API
+availability; the agent can invoke clipboard operations as part of the user's requested task.
+These capabilities are not asserted absent or confined to a sandbox.
+
+The tag-triggered GitHub workflow builds and tests the exact release commit, attests the three
+installation assets and publishes those assets. Verify provenance with `gh attestation verify`.
+Directory acceptance must be confirmed by the actual review of this release.
 
 ## Verification
 
@@ -69,7 +88,7 @@ Directory acceptance of the dynamic execution model must be confirmed by its act
 
 ## Remaining review steps
 
-Inspect the directory's review of version 0.3.1, address any further feedback, and publish
+Inspect the directory's review of version 0.3.2, address any further feedback, and publish
 the listing when accepted.
 
 References: [submission guide](https://docs.obsidian.md/plugins/releasing/submit-plugin),

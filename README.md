@@ -52,6 +52,11 @@ la fecha actual a una nota y comprueba su resultado al ejecutar el comando.
 
 BRAT permite instalar actualizaciones desde las releases de GitHub.
 
+**Obsidian Sync Standard:** `main.js` sigue superando el límite de 5 MB por archivo.
+Instala o actualiza Superpowers con BRAT en cada dispositivo; no dependas de Sync
+para transferir el archivo del plugin. El compilador va comprimido en el paquete y se
+descomprime en memoria, sin descargar recursos para compilar.
+
 ### Actualizar desde las versiones 0.1.0 o 0.2.0
 
 El identificador cambia de `obsidian-superpowers` a `superpowers` para cumplir los requisitos
@@ -173,3 +178,9 @@ Los proyectos se conservan en el directorio del plugin; la conversación sigue s
 - Zukus, referencia interna para herramientas, continuación del chat, dictado y archivos virtuales.
 
 La implementación de este repositorio es propia. Las dependencias incluidas conservan sus avisos de licencia.
+El renderer de React DOM tiene un [parche versionado](patches/README.md) que deshabilita
+la creación de elementos script, innecesaria para el chat. La ejecución autónoma del agente
+sigue disponible a través de su adaptador específico y está declarada para revisión.
+
+Las versiones etiquetadas se construyen y verifican en GitHub Actions. El flujo publica
+los tres archivos de instalación con attestations de procedencia verificables mediante GitHub.

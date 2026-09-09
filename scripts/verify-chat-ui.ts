@@ -30,6 +30,15 @@ try {
   await mkdir('artifacts', { recursive: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.notice').filter({ hasText: 'El historial no tiene un formato válido' })).toHaveCount(0, { timeout: 10000 });
+  expect(await page.locator('.sp-root').evaluate((el) => getComputedStyle(el).padding)).toBe('0px');
+  await page.getByRole('button', { name: 'Ajustes de Superpowers', exact: true }).click();
+  await expect(page.locator('.modal input[type="password"]')).toHaveCount(3);
+  await expect(page.locator('.modal input[type="number"]')).toHaveValue(String(original.settings.maxSteps));
+  await page.locator('.modal select').selectOption('google');
+  expect(await page.evaluate(() => app.plugins.plugins['superpowers']!.settings.provider)).toBe('google');
+  await page.locator('.modal select').selectOption('openai');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.modal select')).toHaveCount(0);
   const building = openaiEvents({ tool: 'build_plugin', input: { manifest: { id: 'sp-ui-proof', name: 'UI proof', version: '0.1.0', minAppVersion: '1.8.0', description: '', author: 'Test', isDesktopOnly: false }, entry: 'main.ts', activate: false, files: [{ path: 'main.ts', content: 'import invalid from "node:fs"; export default invalid;' }] } });
   const answer = openaiEvents({ text: 'No he aplicado cambios. Puedes seguir usando tus notas.' });
   await page.evaluate(({ building, answer }) => {

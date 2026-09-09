@@ -17,11 +17,34 @@ const probe = await build({
   stdin: {
     contents: `import {WasmCompiler} from './src/adapters/compiler/wasm-compiler';
       import {loadCompilerWasm, bundledReferences} from './src/adapters/bundled-assets';
+      import {createElement} from 'react';
+      import {createRoot} from 'react-dom/client';
+      import {flushSync, preinit, preinitModule} from 'react-dom';
       globalThis.compiler = new WasmCompiler(loadCompilerWasm);
-      globalThis.bundledReferences = bundledReferences;`,
+      globalThis.bundledReferences = bundledReferences;
+      globalThis.verifyChatScripts = async () => {
+        const errors = [];
+        for (const preload of [preinit, preinitModule]) {
+          try { preload('https://script-probe.invalid/resource.js', {as: 'script'}); }
+          catch (error) { errors.push(String(error)); }
+        }
+        for (const props of [{src: 'https://script-probe.invalid/resource.js', async: true}, {children: 'window.scriptProbeExecuted = true'}]) {
+          const container = document.createElement('div'); document.body.appendChild(container);
+          let failure = '', settle;
+          const rejected = new Promise(resolve => { settle = resolve; });
+          const root = createRoot(container, {onUncaughtError: error => { failure = String(error); settle(); }});
+          try { flushSync(() => root.render(createElement('script', props))); }
+          catch (error) { failure = String(error); settle(); }
+          await Promise.race([rejected, new Promise(resolve => setTimeout(resolve, 2000))]);
+          root.unmount(); container.remove();
+          if (failure) errors.push(failure);
+        }
+        return {errors, inserted: document.querySelectorAll('script:not([src="/probe.js"])').length, executed: !!window.scriptProbeExecuted};
+      };`,
     resolveDir: process.cwd(),
   },
   bundle: true, platform: 'browser', format: 'iife', write: false, plugins: [bundledAssets],
+  define: { 'process.env.NODE_ENV': '"production"' },
 });
 const bundle = probe.outputFiles[0]!.text;
 const server = createServer((request, response) => {
@@ -41,6 +64,13 @@ try {
       await page.goto(`http://127.0.0.1:${address.port}`);
       // The compiler and context must remain usable without downloading assets.
       await page.context().setOffline(true);
+      const scripts = await page.evaluate(() => (globalThis as typeof globalThis & {
+        verifyChatScripts: () => Promise<{ errors: string[]; inserted: number; executed: boolean }>;
+      }).verifyChatScripts());
+      expect(scripts.errors).toHaveLength(4);
+      expect(scripts.errors.every((error) => error.includes('Superpowers chat does not support script'))).toBe(true);
+      expect(scripts.inserted).toBe(0);
+      expect(scripts.executed).toBe(false);
       const references = await page.evaluate(() => (globalThis as typeof globalThis & { bundledReferences: import('../src/adapters/obsidian/references').ReferenceDocuments }).bundledReferences);
       expect(references.system.length).toBeGreaterThan(500);
       expect(references.guides).toContain('Plugin');
@@ -63,7 +93,7 @@ try {
       expect(result.rejected.ok).toBe(false);
       expect(result.value).toBe(5);
       expect(result.toolImportRejected).toBe(true);
-      findings.push({ engine: engine.name(), offlineBundledAssets: true, nodeAbsent: result.nodeAbsent, compilation: result.success.ok, unsupportedImportRejected: !result.rejected.ok, scriptResult: result.value, toolImportRejected: result.toolImportRejected });
+      findings.push({ engine: engine.name(), offlineBundledAssets: true, chatScriptCreationBlocked: true, nodeAbsent: result.nodeAbsent, compilation: result.success.ok, unsupportedImportRejected: !result.rejected.ok, scriptResult: result.value, toolImportRejected: result.toolImportRejected });
     } finally { await browser.close(); }
   }
 } finally { await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve())); }

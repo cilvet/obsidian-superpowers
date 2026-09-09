@@ -6,6 +6,8 @@ export const obsidianFetch: HttpFetch = async (input, init) => {
   const request = new Request(input, init);
   request.signal.throwIfAborted();
   try {
+    // Streaming and AbortSignal are needed for responsive chat/cancellation. requestUrl below
+    // is the native fallback; it buffers responses and cannot cancel an in-flight request.
     return await fetch(request.clone());
   } catch (error) {
     request.signal.throwIfAborted();

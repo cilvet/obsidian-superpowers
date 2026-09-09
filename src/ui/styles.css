@@ -1,4 +1,4 @@
-.sp-root { height: 100%; min-height: 0; padding: 0 !important; --sp-accent: var(--interactive-accent, #9279d3); }
+.workspace-leaf-content .view-content.sp-root { height: 100%; min-height: 0; padding: 0; --sp-accent: var(--interactive-accent, #9279d3); }
 .sp-root * { box-sizing: border-box; }
 .sp-chat { display: flex; flex-direction: column; height: 100%; min-height: 0; color: var(--text-normal); background: var(--background-primary); font-family: var(--font-interface); font-size: var(--font-ui-small, 14px); }
 .sp-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--background-modifier-border); flex: 0 0 auto; }

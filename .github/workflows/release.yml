@@ -1,0 +1,43 @@
+name: Verified release
+
+on:
+  push:
+    tags: ['*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.3
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Validate release version
+        run: |
+          bun -e 'const manifest = await Bun.file("manifest.json").json(); if (!/^\d+\.\d+\.\d+$/.test(manifest.version) || manifest.version !== process.env.GITHUB_REF_NAME) throw new Error("Tag must match manifest version");'
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium webkit
+      - run: bun run check
+      - name: Attest the files that users install
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            dist/main.js
+            dist/manifest.json
+            dist/styles.css
+      - name: Publish the verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/main.js dist/manifest.json dist/styles.css --verify-tag --title "Superpowers $GITHUB_REF_NAME" --notes-file "docs/releases/$GITHUB_REF_NAME.md"

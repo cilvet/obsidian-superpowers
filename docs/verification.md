@@ -78,6 +78,24 @@ intencionada del agente y avisos de compatibilidad; no se considera aprobado. Lo
 y el funcionamiento están descritos en [las notas para revisión](community-submission.md).
 Se usa TypeScript 6 porque el comprobador oficial todavía no admite TypeScript 7.
 
+## Correcciones de revisión — 0.3.2, 9 de septiembre de 2026
+
+`bun run check` y `bun run verify:release` pasan. Se verifican las cuatro rutas de
+React para precargar o renderizar scripts: rechazan la operación sin insertar ni ejecutar
+un script en Chromium y WebKit. El WASM comprimido compila sin red ni Node en ambos motores.
+La descompresión usa un flujo en memoria para evitar un fallo del lector Blob de WebKit sin red.
+
+En Obsidian 1.12.4 pasan de nuevo las herramientas de los tres proveedores, la creación,
+actualización y recuperación de plugins, historial y cancelación. La interfaz conserva
+el desplegable, los iconos, movimiento reducido y las anchuras de 320/390/900 px. Se comprueba
+también el padding sin `!important`, los tres campos de credenciales y el cambio de proveedor
+desde el modal de ajustes. Las definiciones nuevas de ajustes pasan tipos; el buscador de
+ajustes de una instalación real de Obsidian 1.13 no se ha probado.
+
+`bun run lint` conserva únicamente dos errores por la ejecución dinámica intencionada y
+un aviso por streaming fetch. No se han ocultado esas capacidades. El tamaño se reduce de
+unos 21 MB a 7.4 MB, aún por encima del límite de 5 MB de Sync Standard.
+
 ## Pendiente de validar con modelos y dispositivos reales
 
 **Inferencia con modelos reales:** no había ninguna API key disponible en el entorno.

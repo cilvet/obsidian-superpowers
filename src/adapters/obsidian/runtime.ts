@@ -46,7 +46,8 @@ export class ObsidianRuntime implements ObsidianRuntimePort {
     signal?.throwIfAborted();
     // Intentional dynamic execution: the user's agent runs its compiled task against Obsidian.
     // This is not a sandbox; the review notes disclose this boundary and its lint findings.
-    const callable: unknown = new Function(`"use strict"; return ${compiled}`)();
+    const factory = new Function(`"use strict"; return ${compiled}`) as () => unknown;
+    const callable = factory();
     if (typeof callable !== 'function') throw new Error('Script compilation did not produce a function.');
     const run = callable as Script;
     const component = new obsidian.Component();

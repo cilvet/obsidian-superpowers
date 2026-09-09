@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { useAISDKRuntime } from '@assistant-ui/react-ai-sdk';
-import { AssistantRuntimeProvider, ThreadPrimitive, MessagePrimitive, ComposerPrimitive, useAui, useAuiState } from '@assistant-ui/react';
+import { AssistantRuntimeProvider, ThreadPrimitive, MessagePrimitive, ComposerPrimitive, AuiIf, useAui, useAuiState } from '@assistant-ui/react';
 import type { ToolCallMessagePartComponent } from '@assistant-ui/react';
 import { MarkdownTextPrimitive } from '@assistant-ui/react-markdown';
 import type { ChatSession } from '../adapters/ai/session';
@@ -101,8 +101,8 @@ export function ChatView({ session, modelLabel, openSettings, transcribe }: Prop
     <ThreadPrimitive.Root className="sp-chat">
       <header className="sp-header"><span className="sp-brand"><Icon name="sparkles" /> Superpowers</span><div className="sp-header-actions"><button type="button" onClick={() => void session.clear()} disabled={running} aria-label="Nueva conversación"><Icon name="plus" /></button><button type="button" onClick={openSettings} aria-label="Ajustes de Superpowers"><Icon name="settings" /></button></div></header>
       <ThreadPrimitive.Viewport className="sp-viewport">
-        <ThreadPrimitive.Empty><section className="sp-welcome"><span className="sp-mark"><Icon name="sparkles" /></span><h2>Tu Obsidian.<br />Tus superpoderes.</h2><p>Describe qué necesitas. Puedo trabajar con tus notas y construir nuevas funcionalidades para ti.</p><div className="sp-examples"><button onClick={() => void chat.sendMessage({ text: 'Explora mi vault y dime qué estructuras y herramientas tengo disponibles.' })}>Explorar mi vault <Icon name="arrow-up-right" /></button><button onClick={() => void chat.sendMessage({ text: 'Quiero crear una nueva funcionalidad para Obsidian. Ayúdame a concretarla.' })}>Construir algo nuevo <Icon name="arrow-up-right" /></button></div></section></ThreadPrimitive.Empty>
-        <ThreadPrimitive.Messages components={{ AssistantMessage, UserMessage }} />
+        <AuiIf condition={(state) => state.thread.isEmpty}><section className="sp-welcome"><span className="sp-mark"><Icon name="sparkles" /></span><h2>Tu Obsidian.<br />Tus superpoderes.</h2><p>Describe qué necesitas. Puedo trabajar con tus notas y construir nuevas funcionalidades para ti.</p><div className="sp-examples"><button onClick={() => void chat.sendMessage({ text: 'Explora mi vault y dime qué estructuras y herramientas tengo disponibles.' })}>Explorar mi vault <Icon name="arrow-up-right" /></button><button onClick={() => void chat.sendMessage({ text: 'Quiero crear una nueva funcionalidad para Obsidian. Ayúdame a concretarla.' })}>Construir algo nuevo <Icon name="arrow-up-right" /></button></div></section></AuiIf>
+        <ThreadPrimitive.Messages>{({ message }) => message.role === 'user' ? <UserMessage /> : message.role === 'assistant' ? <AssistantMessage /> : null}</ThreadPrimitive.Messages>
       </ThreadPrimitive.Viewport>
       <footer className="sp-footer">
         {chat.error && <div className="sp-error" role="alert">{chat.error.message}<button type="button" onClick={() => chat.clearError()}>Cerrar</button></div>}
