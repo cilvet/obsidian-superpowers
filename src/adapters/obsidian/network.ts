@@ -6,7 +6,7 @@ export const obsidianFetch: HttpFetch = async (input, init) => {
   const request = new Request(input, init);
   request.signal.throwIfAborted();
   try {
-    return await globalThis.fetch(request.clone());
+    return await fetch(request.clone());
   } catch (error) {
     request.signal.throwIfAborted();
     if (!(error instanceof TypeError)) throw error;

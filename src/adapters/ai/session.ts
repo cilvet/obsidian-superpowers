@@ -42,12 +42,12 @@ export class ChatSession {
   }
 
   scheduleSave() {
-    clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => { void this.save(); }, 400);
+    window.clearTimeout(this.saveTimer);
+    this.saveTimer = window.setTimeout(() => { void this.save(); }, 400);
   }
 
   save() {
-    clearTimeout(this.saveTimer);
+    window.clearTimeout(this.saveTimer);
     const snapshot = JSON.stringify(this.chat.messages);
     return this.writes.run(() => this.vault.write(this.historyPath, snapshot));
   }

@@ -40,7 +40,7 @@ export function vaultPath(path: string): string {
 
 export function validateProject(input: unknown): PluginProject {
   const project = projectSchema.parse(input);
-  if (project.manifest.id === 'obsidian-superpowers') {
+  if (['superpowers', 'obsidian-superpowers'].includes(project.manifest.id)) {
     throw new Error('Choose a distinct ID for the generated plugin.');
   }
   const files: Record<string, string> = {};

@@ -9,7 +9,7 @@ import { Icon } from './Icon';
 import { ActivityGroup } from './ActivityGroup';
 import { activityLabels, activityPresentation, failedResult } from './activity';
 
-const ToolActivity: ToolCallMessagePartComponent = ({ toolName, args, result, status, isError }) => {
+const ToolActivity: ToolCallMessagePartComponent<unknown, unknown> = ({ toolName, args, result, status, isError }) => {
   const failed = isError || failedResult(result);
   const pending = result === undefined && !failed;
   const stopped = status.type === 'incomplete';
@@ -71,7 +71,7 @@ function Dictation({ transcribe }: { transcribe: (blob: Blob, signal: AbortSigna
         controller.current = request;
         try {
           const text = await transcribe(new Blob(chunks, { type: current.mimeType }), request.signal);
-          if (mounted.current) aui.composer().setText(text);
+          if (mounted.current) aui.composer.setText(text);
         } catch (failure) {
           if (mounted.current) setError(failure instanceof Error ? failure.message : String(failure));
         } finally { if (mounted.current) setState('idle'); }

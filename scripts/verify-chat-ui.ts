@@ -13,13 +13,13 @@ const page = browser.contexts()[0]?.pages().find((candidate) => candidate.url().
 if (!page) throw new Error('Run verify:release first.');
 const original = await page.evaluate(async () => {
   if (app.vault.getName() !== '.release-vault') throw new Error('UI checks only run in .release-vault.');
-  const p = app.plugins.plugins['obsidian-superpowers']!;
+  const p = app.plugins.plugins['superpowers']!;
   if (['submitted', 'streaming'].includes(p.session.chat.status)) throw new Error('Wait for the current conversation.');
   const saved = { settings: structuredClone(p.settings), messages: structuredClone(p.session.chat.messages), dark: document.body.classList.contains('theme-dark') };
   p.settings.credentialNamespace = crypto.randomUUID(); p.settings.provider = 'openai'; await p.saveSettings();
   for (const leaf of app.workspace.getLeavesOfType('superpowers-chat')) leaf.detach();
-  await app.plugins.disablePlugin('obsidian-superpowers'); await app.plugins.enablePlugin('obsidian-superpowers');
-  const fresh = app.plugins.plugins['obsidian-superpowers']!;
+  await app.plugins.disablePlugin('superpowers'); await app.plugins.enablePlugin('superpowers');
+  const fresh = app.plugins.plugins['superpowers']!;
   fresh.credentials.set('openai', 'fixture-key-not-a-real-credential'); await fresh.session.clear();
   const leaf = app.workspace.getLeaf('tab'); await leaf.setViewState({ type: 'superpowers-chat', active: true }); await app.workspace.revealLeaf(leaf);
   app.workspace.leftSplit.collapse(); app.workspace.rightSplit.collapse();
@@ -96,11 +96,11 @@ try {
 } finally {
   await page.evaluate(async (saved) => {
     if (window.spUiFixture) { globalThis.fetch = window.spUiFixture.original; delete window.spUiFixture; }
-    const p = app.plugins.plugins['obsidian-superpowers']!; await p.session.stop(); p.credentials.set('openai', '');
+    const p = app.plugins.plugins['superpowers']!; await p.session.stop(); p.credentials.set('openai', '');
     p.settings = saved.settings; await p.saveSettings(); p.session.chat.messages = saved.messages; await p.session.save();
     document.body.classList.toggle('theme-dark', saved.dark); document.body.classList.toggle('theme-light', !saved.dark);
-    await app.plugins.disablePlugin('obsidian-superpowers'); await app.plugins.enablePlugin('obsidian-superpowers');
-    await app.plugins.plugins['obsidian-superpowers']!.openChat();
+    await app.plugins.disablePlugin('superpowers'); await app.plugins.enablePlugin('superpowers');
+    await app.plugins.plugins['superpowers']!.openChat();
   }, original);
   if (oldViewport) await page.setViewportSize(oldViewport);
   await page.emulateMedia({ reducedMotion: null });

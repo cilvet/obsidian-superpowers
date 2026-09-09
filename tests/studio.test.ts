@@ -47,5 +47,6 @@ describe('independent plugin lifecycle', () => {
     const { studio } = fixture();
     await expect(studio.buildPlugin({ ...project, files: { '../main.ts': '' } }, true)).rejects.toThrow();
     await expect(studio.buildPlugin({ ...project, manifest: { ...project.manifest, id: 'obsidian-superpowers' } }, true)).rejects.toThrow();
+    await expect(studio.buildPlugin({ ...project, manifest: { ...project.manifest, id: 'superpowers' } }, true)).rejects.toThrow();
   });
 });

@@ -31,7 +31,7 @@ Las claves se guardan en el almacenamiento local del dispositivo, fuera de los a
 El dictado requiere una clave de OpenAI; también puedes utilizar el dictado del teclado.
 
 Para instalar manualmente en escritorio o móvil, copia únicamente `dist/main.js`,
-`dist/manifest.json` y `dist/styles.css` a `<vault>/<configDir>/plugins/obsidian-superpowers/`
+`dist/manifest.json` y `dist/styles.css` a `<vault>/<configDir>/plugins/superpowers/`
 y habilita el plugin. El compilador WASM, las referencias y los avisos de dependencias
 están integrados en `main.js`; no se descarga ningún recurso adicional para compilar.
 `configDir` normalmente es `.obsidian`. La activación de plugins generados utiliza un adaptador
@@ -40,11 +40,9 @@ para APIs internas de Obsidian; puede requerir ajustes cuando cambie el cargador
 ## Instalar la beta con BRAT (iPhone, Android o escritorio)
 
 1. Instala y activa **BRAT** desde los plugins de la comunidad de Obsidian.
-2. Este repositorio es privado. En GitHub, crea un **fine-grained personal access token**
-   con acceso únicamente a `cilvet/obsidian-superpowers` y permiso **Contents: Read-only**.
-   Introduce ese token en BRAT para acceder al repositorio; no es la API key del modelo.
-3. Ejecuta el comando de BRAT **Add a beta plugin for testing** y añade
-   `https://github.com/cilvet/obsidian-superpowers`. Selecciona la versión `0.2.0` o la última beta.
+2. Ejecuta el comando de BRAT **Add a beta plugin for testing** y añade
+   `https://github.com/cilvet/obsidian-superpowers`. Selecciona la versión `0.3.0` o la última disponible.
+3. El repositorio es público; no necesitas un token de GitHub.
 4. Activa **Superpowers** en los plugins instalados, configura tu proveedor y API key,
    y ejecuta **Superpowers: Abrir chat**.
 
@@ -52,19 +50,34 @@ Cada dispositivo necesita su propia configuración de credenciales. Obsidian Syn
 necesario para instalar la beta. Para probarla, pide un plugin con un comando que añada
 la fecha actual a una nota y comprueba su resultado al ejecutar el comando.
 
-Los colaboradores necesitan acceso al repositorio privado y un token propio con permisos
-de lectura. Si el repositorio se hace público, ese requisito de autenticación desaparece.
 BRAT permite instalar actualizaciones desde las releases de GitHub.
+
+### Actualizar desde las versiones 0.1.0 o 0.2.0
+
+El identificador cambia de `obsidian-superpowers` a `superpowers` para cumplir los requisitos
+del directorio. Desactiva la beta antigua antes de instalar la nueva; no la desinstales todavía.
+La primera activación copia ajustes, historial y proyectos a la nueva carpeta, conserva el
+espacio de credenciales del dispositivo y deja intactos los archivos antiguos. No sobrescribe
+una instalación nueva que ya tenga ajustes. Comprueba que tu conversación y proyectos están
+disponibles antes de retirar la instalación antigua de BRAT. No actives ambas a la vez.
+Los plugins generados siguen funcionando sin migración.
 
 - [Releases de Superpowers](https://github.com/cilvet/obsidian-superpowers/releases)
 - [Guía de BRAT, incluidos repositorios privados](https://github.com/TfTHacker/obsidian42-brat/blob/main/BRAT-DEVELOPER-GUIDE.md)
 
 ## Conexiones y datos
 
+Superpowers es gratuito y está distribuido bajo la [licencia MIT](LICENSE). Requiere Obsidian 1.12.4 o posterior.
+
 El chat envía los mensajes, el contexto y los resultados de las herramientas al proveedor
 seleccionado (OpenAI, Anthropic o Google). Eso puede incluir contenido del vault que el
 agente lea. El dictado envía el audio a OpenAI. Se necesita una cuenta y una API key del
 proveedor correspondiente; su uso puede generar costes según sus tarifas.
+Las peticiones van a `api.openai.com`, `api.anthropic.com` o
+`generativelanguage.googleapis.com`, según el proveedor elegido. La compilación usa recursos
+incluidos en la instalación. El agente puede ejecutar operaciones y crear plugins que utilicen
+otros servicios si la tarea del usuario lo requiere. Esos plugins son independientes;
+Superpowers no se actualiza a sí mismo ni instala sus dependencias en tiempo de ejecución.
 No hay servidor de Superpowers ni telemetría propia. Las claves de los proveedores se
 guardan por dispositivo y no se incluyen en los archivos que sincroniza Obsidian Sync.
 
@@ -75,6 +88,7 @@ guardan por dispositivo y no se incluyen en los archivos que sincroniza Obsidian
 PLAYWRIGHT_SKIP_BROWSER_GC=1 bunx playwright install chromium webkit
 
 bun run check             # Tipos, pruebas de comportamiento, build y navegadores sin Node.
+bun run lint              # Revisión oficial; ejecución dinámica pendiente de valoración (ver docs/community-submission.md).
 bun run verify:desktop    # Obsidian debe estar abierto con el perfil de pruebas.
 bun run verify:release    # macOS: instala los tres archivos y abre otra instancia aislada.
 ```

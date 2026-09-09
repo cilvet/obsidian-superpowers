@@ -25,7 +25,7 @@ export class Studio {
   ) {}
 
   get sourceRoot() {
-    return `${this.host.configDir}/plugins/obsidian-superpowers/projects`;
+    return `${this.host.configDir}/plugins/superpowers/projects`;
   }
 
   async readProject(id: string) {

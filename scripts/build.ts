@@ -21,7 +21,7 @@ const licenses: Plugin = {
         const match = path.match(/node_modules\/((?:@[^/]+\/)?[^/]+)/);
         return match?.[1] ? [match[1]] : [];
       })]);
-      const notices: string[] = [await readFile('scripts/licenses/Apache-2.0.txt', 'utf8')];
+      const notices: string[] = [await readFile('LICENSE', 'utf8'), await readFile('scripts/licenses/Apache-2.0.txt', 'utf8')];
       const fallbacks: Record<string, string> = { '@ai-sdk/provider-utils': 'ai-sdk.txt', 'react-remove-scroll-bar': 'react-remove-scroll-bar.txt', 'use-composed-ref': 'use-composed-ref.txt' };
       for (const name of [...packages].sort()) {
         const root = `node_modules/${name}`;

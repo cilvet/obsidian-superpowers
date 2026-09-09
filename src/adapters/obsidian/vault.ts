@@ -29,7 +29,7 @@ export class ObsidianVault implements VaultPort {
   async remove(path: string) {
     const clean = vaultPath(path);
     const file = this.app.vault.getAbstractFileByPath(clean);
-    if (file instanceof TFile) await this.app.vault.delete(file);
+    if (file instanceof TFile) await this.app.fileManager.trashFile(file);
     else await this.app.vault.adapter.remove(clean);
   }
 }

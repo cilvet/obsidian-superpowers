@@ -66,6 +66,18 @@ Los avisos de dependencias se incluyen en el JavaScript distribuido.
 - Evidencia adicional: `artifacts/chat-ui-verification.json`, `chat-mobile-working.png`,
   `chat-mobile-expanded.png` y `chat-desktop-dark.png`. `bun run verify:release` incluye estas pruebas.
 
+## Preparación del directorio — 0.3.0, 9 de septiembre de 2026
+
+`bun run check` pasa con 29 pruebas, incluido traslado de datos desde el identificador antiguo
+y recuperación de una copia interrumpida. Se repitió `bun run verify:release` con el identificador
+`superpowers`: chat, herramientas, ciclo de plugins, persistencia, emulación móvil y las tres
+anchuras de interfaz pasaron, sin errores de página. La versión mínima declarada es 1.12.4.
+
+El linter oficial se ejecuta aparte mediante `bun run lint`. Detecta la ejecución dinámica
+intencionada del agente y avisos de compatibilidad; no se considera aprobado. Los hallazgos
+y el funcionamiento están descritos en [las notas para revisión](community-submission.md).
+Se usa TypeScript 6 porque el comprobador oficial todavía no admite TypeScript 7.
+
 ## Pendiente de validar con modelos y dispositivos reales
 
 **Inferencia con modelos reales:** no había ninguna API key disponible en el entorno.

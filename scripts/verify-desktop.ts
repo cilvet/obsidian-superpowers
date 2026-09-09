@@ -36,8 +36,8 @@ async function emulateMobile(enabled: boolean) {
       }),
     ]);
   }
-  await page!.waitForFunction(() => 'app' in window && app.plugins?.plugins['obsidian-superpowers']);
-  await page!.evaluate(() => app.plugins.plugins['obsidian-superpowers']!.openChat());
+  await page!.waitForFunction(() => 'app' in window && app.plugins?.plugins['superpowers']);
+  await page!.evaluate(() => app.plugins.plugins['superpowers']!.openChat());
 }
 try {
   await page.waitForFunction(() => 'app' in window && app.vault, undefined, { timeout: 20000 });
@@ -46,9 +46,9 @@ try {
   if (!['.dev-vault', '.release-vault'].includes(expectedVault) || vault !== expectedVault) throw new Error('Desktop verification only runs in the configured isolated test vault.');
   const trust = page.getByRole('button', { name: /^(Confiar en el autor y activar complementos|Trust author and enable plugins)$/ });
   if (await trust.isVisible()) await trust.click();
-  await page.waitForFunction(() => app.plugins?.plugins['obsidian-superpowers']?.session?.chat, undefined, { timeout: 20000 });
+  await page.waitForFunction(() => app.plugins?.plugins['superpowers']?.session?.chat, undefined, { timeout: 20000 });
   original = await page.evaluate(async () => {
-    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    const plugin = app.plugins.plugins['superpowers']!;
     if (['submitted', 'streaming'].includes(plugin.session.chat.status)) throw new Error('Wait for the active conversation before running desktop verification.');
     const saved = { settings: structuredClone(plugin.settings), messages: structuredClone(plugin.session.chat.messages) };
     // Fixtures get a separate credential namespace; never replace real API keys.
@@ -56,14 +56,14 @@ try {
     await plugin.saveSettings();
     return saved;
   });
-  expect(await page.evaluate(() => app.vault.adapter.exists(`${app.vault.configDir}/plugins/obsidian-superpowers/assets`))).toBe(false);
+  expect(await page.evaluate(() => app.vault.adapter.exists(`${app.vault.configDir}/plugins/superpowers/assets`))).toBe(false);
   findings.push('Installation has no assets directory: compiler and API references are embedded in main.js.');
   await emulateMobile(false);
   await page.evaluate(async () => {
     app.setting.close();
-    await app.plugins.disablePlugin('obsidian-superpowers');
-    await app.plugins.enablePlugin('obsidian-superpowers');
-    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    await app.plugins.disablePlugin('superpowers');
+    await app.plugins.enablePlugin('superpowers');
+    const plugin = app.plugins.plugins['superpowers']!;
     await plugin.session.clear();
     await plugin.openChat();
   });
@@ -97,7 +97,7 @@ try {
       };
     }, bodies);
     await page.evaluate(async (provider) => {
-      const plugin = app.plugins.plugins['obsidian-superpowers']!;
+      const plugin = app.plugins.plugins['superpowers']!;
       await plugin.session.clear();
       plugin.settings.provider = provider;
       plugin.credentials.set(provider, 'fixture-key-not-a-real-credential');
@@ -148,7 +148,7 @@ try {
       return new Response(body, { headers: { 'content-type': 'text/event-stream' } });
     };
   }, repairReplies.map(openaiEvents));
-  await page.evaluate(async () => { const p = app.plugins.plugins['obsidian-superpowers']!; await p.session.clear(); p.settings.provider = 'openai'; p.refreshViews(); });
+  await page.evaluate(async () => { const p = app.plugins.plugins['superpowers']!; await p.session.clear(); p.settings.provider = 'openai'; p.refreshViews(); });
   await page.getByRole('textbox', { name: 'Mensaje para Superpowers' }).fill('Crea un plugin con un comando y comprueba que funciona.');
   await page.getByRole('button', { name: 'Enviar mensaje', exact: true }).click();
   await expect(page.locator('.sp-assistant')).toContainText('El error de importación quedó corregido', { timeout: 20000 });
@@ -161,7 +161,7 @@ try {
 
   // Test the actual WebView compiler and Obsidian's plugin loader, including independent lifecycle.
   const lifecycle = await page.evaluate(async () => {
-    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    const plugin = app.plugins.plugins['superpowers']!;
     const manifest = { id: 'sp-desktop-proof', name: 'Desktop proof', version: '0.1.0', description: 'Verification fixture', author: 'Test', isDesktopOnly: false as const, minAppVersion: '1.8.0' };
     const source = { manifest, entry: 'main.ts', files: {
       'main.ts': `import {Plugin} from 'obsidian'; import {content} from './content'; export default class Proof extends Plugin {onload(){this.addCommand({id:'write-proof',name:'Write proof',callback:async()=>{await this.app.vault.adapter.write('Desktop proof.md',content)}})}}`,
@@ -176,13 +176,13 @@ try {
     let rollbackError = '';
     try { await plugin.studio.buildPlugin({ ...source, manifest: { ...manifest, version: '0.3.0' }, files: { 'main.ts': 'import {Plugin} from "obsidian"; export default class Broken extends Plugin {onload(){throw new Error("intentional lifecycle failure")}}' } }, true); }
     catch (error) { rollbackError = String(error); }
-    await app.plugins.disablePlugin('obsidian-superpowers');
+    await app.plugins.disablePlugin('superpowers');
     await app.commands.commands['sp-desktop-proof:write-proof']!.callback?.();
     const independent = await app.vault.adapter.read('Desktop proof.md');
     await app.plugins.disablePlugin(manifest.id);
     const cleanedUp = !app.commands.commands['sp-desktop-proof:write-proof'];
-    await app.plugins.enablePlugin('obsidian-superpowers');
-    await app.plugins.plugins['obsidian-superpowers']!.openChat();
+    await app.plugins.enablePlugin('superpowers');
+    await app.plugins.plugins['superpowers']!.openChat();
     return { built, initial, brokenImport, stillEnabled, updated, rollbackError, independent, cleanedUp };
   });
   expect(lifecycle.built.ok).toBe(true);
@@ -200,7 +200,7 @@ try {
   findings.push('Conversation and tool results survive a real plugin reload.');
 
   await page.evaluate(async () => {
-    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    const plugin = app.plugins.plugins['superpowers']!;
     await plugin.session.clear();
     const state = { original: globalThis.fetch, calls: 0, requests: [] as string[] }; window.spFixture = state;
     globalThis.fetch = async (input, init) => {
@@ -224,7 +224,7 @@ try {
   await emulateMobile(true);
   await expect(page.getByRole('textbox', { name: 'Mensaje para Superpowers' })).toBeVisible();
   const mobile = await page.evaluate(async () => {
-    const p = app.plugins.plugins['obsidian-superpowers']!;
+    const p = app.plugins.plugins['superpowers']!;
     const project = await p.studio.readProject('sp-chat-proof');
     return { environment: await p.runtime.inspect(), build: await p.studio.buildPlugin(project, true) };
   });
@@ -234,7 +234,7 @@ try {
   findings.push('Obsidian mobile emulation: chat loads and generated plugins compile/activate with Node imports disabled.');
 
   await page.evaluate(async () => {
-    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    const plugin = app.plugins.plugins['superpowers']!;
     for (const provider of ['openai', 'anthropic', 'google'] as const) plugin.credentials.set(provider, '');
     plugin.settings.provider = 'openai';
     await plugin.saveSettings();
@@ -251,15 +251,15 @@ try {
 } finally {
   await page.evaluate(() => { if (window.spFixture) { globalThis.fetch = window.spFixture.original; delete window.spFixture; } }).catch(() => undefined);
   if (original) await page.evaluate(async (saved) => {
-    const plugin = app.plugins.plugins['obsidian-superpowers']!;
+    const plugin = app.plugins.plugins['superpowers']!;
     await plugin.session.stop();
     plugin.settings = saved.settings;
     await plugin.saveSettings();
     plugin.session.chat.messages = saved.messages;
     await plugin.session.save();
-    await app.plugins.disablePlugin('obsidian-superpowers');
-    await app.plugins.enablePlugin('obsidian-superpowers');
-    await app.plugins.plugins['obsidian-superpowers']!.openChat();
+    await app.plugins.disablePlugin('superpowers');
+    await app.plugins.enablePlugin('superpowers');
+    await app.plugins.plugins['superpowers']!.openChat();
   }, original);
   await page.unrouteAll();
   await browser.close();

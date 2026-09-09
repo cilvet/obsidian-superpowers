@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import type { Root } from 'react-dom/client';
 import type { UIMessage } from 'ai';
 import { Studio } from './application/studio';
+import { migrateLegacyInstallation } from './application/migrate-legacy-installation';
 import { WasmCompiler } from './adapters/compiler/wasm-compiler';
 import { ObsidianVault } from './adapters/obsidian/vault';
 import { ObsidianPluginHost } from './adapters/obsidian/plugin-host';
@@ -46,11 +47,12 @@ export default class Superpowers extends Plugin {
   references!: LocalReferences;
 
   async onload() {
+    const folder = this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
+    const vault = new ObsidianVault(this.app);
+    await migrateLegacyInstallation(vault, this.app.vault.configDir, folder);
     this.settings = settingsSchema.parse(await this.loadData() ?? {});
     await this.saveSettings();
     this.credentials = new DeviceCredentials(this.settings.credentialNamespace, window.localStorage);
-    const folder = this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
-    const vault = new ObsidianVault(this.app);
     const compiler = new WasmCompiler(loadCompilerWasm);
     this.studio = new Studio(vault, compiler, new ObsidianPluginHost(this.app));
     this.runtime = new ObsidianRuntime(this.app, this, compiler);
